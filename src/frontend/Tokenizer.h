@@ -3,7 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <expected>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 
 // Based on https://docs.python.org/3/reference/lexical_analysis.html
@@ -26,10 +28,87 @@ enum class TokenType {
   Eof,
 };
 
+enum class OperatorType {
+  UnaryAdd,
+  UnarySubtract,
+  UnaryMultiply,
+  UnaryExponentiate,
+  UnaryFloatDivide,
+  UnaryIntegerDivide,
+  UnaryModulo,
+  UnaryBitwiseAnd,
+  UnaryBitwiseOr,
+  UnaryBitwiseXor,
+  UnaryLeftShift,
+  UnaryRightShift,
+  BitwiseAnd,
+  BitwiseOr,
+  BitwiseXor,
+  BitwiseInvert,
+  LeftShift,
+  RightShift,
+  LessOrEqual,
+  GreaterOrEqual,
+  Less,
+  Greater,
+  Equal,
+  NotEqual,
+  Add,
+  Subtract,
+  Exponentiate,
+  Multiply,
+  IntegerDivide,
+  FloatDivide,
+  Modulo,
+  LogicalNot,
+  LogicalAnd,
+  LogicalOr,
+};
+
+enum class KeywordType {
+  False,
+  Await,
+  Else,
+  Import,
+  Pass,
+  None,
+  Break,
+  Except,
+  In,
+  Raise,
+  True,
+  Class,
+  Finally,
+  Is,
+  Return,
+  // And,   // Parsed as OperatorType::LogicalAnd
+  Continue,
+  For,
+  Lambda,
+  Try,
+  As,
+  Def,
+  From,
+  Nonlocal,
+  While,
+  Assert,
+  Del,
+  Global,
+  // Not,   // Parsed as OperatorType::LogicalNot
+  With,
+  Async,
+  Elif,
+  If,
+  // Or,    // Parsed as OperatorType::LogicalOr
+  Yield,
+};
+
 struct Token {
+  using ValueType = std::variant<std::string, std::int64_t, double, OperatorType, KeywordType>;
+
   TokenType Type;
   SourceLocation Location;
-  std::variant<std::string, std::int64_t, double> Value;
+  ValueType Value;
 };
 
 class Tokenizer {
@@ -45,5 +124,14 @@ private:
   std::size_t IndentSize_{};
   SourceLocation CurrLocation_{};
 };
+
+namespace detail {
+
+std::optional<std::int64_t> getIntegerLiteral(const std::string_view IntegerStr);
+std::optional<double> getFloatLiteral(const std::string_view FloatStr);
+std::optional<OperatorType> getOperatorType(const std::string_view OperatorStr);
+std::optional<KeywordType> getKeywordType(const std::string_view OperatorStr);
+
+} // namespace detail
 
 } // namespace compyled::lexer

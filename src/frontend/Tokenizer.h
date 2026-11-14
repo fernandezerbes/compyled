@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <expected>
@@ -21,6 +22,7 @@ enum class TokenType {
   Float,
   Keyword,
   Operator,
+  Delimiter,
   Indentation,
   NewLine,
   Identifier,
@@ -53,6 +55,7 @@ enum class OperatorType {
   Greater,
   Equal,
   NotEqual,
+  Assign,
   Add,
   Subtract,
   Exponentiate,
@@ -63,6 +66,21 @@ enum class OperatorType {
   LogicalNot,
   LogicalAnd,
   LogicalOr,
+};
+
+enum class DelimiterType {
+  LeftParenthesis,
+  RightParenthesis,
+  LeftBracket,
+  RightBracket,
+  LeftBraces,
+  RightBraces,
+  Comma,
+  Colon,
+  Exclamation,
+  Semicolon,
+  Equal,
+  Arrow,
 };
 
 enum class KeywordType {
@@ -81,7 +99,7 @@ enum class KeywordType {
   Finally,
   Is,
   Return,
-  // And,   // Parsed as OperatorType::LogicalAnd
+  And,
   Continue,
   For,
   Lambda,
@@ -94,17 +112,21 @@ enum class KeywordType {
   Assert,
   Del,
   Global,
-  // Not,   // Parsed as OperatorType::LogicalNot
+  Not,
   With,
   Async,
   Elif,
   If,
-  // Or,    // Parsed as OperatorType::LogicalOr
+  Or,
   Yield,
 };
 
+using IntegerType = std::int64_t;
+using FloatType = std::double_t;
+
 struct Token {
-  using ValueType = std::variant<std::string, std::int64_t, double, OperatorType, KeywordType>;
+  using ValueType =
+      std::variant<std::string, IntegerType, FloatType, OperatorType, KeywordType, DelimiterType>;
 
   TokenType Type;
   SourceLocation Location;
@@ -127,10 +149,14 @@ private:
 
 namespace detail {
 
-std::optional<std::int64_t> getIntegerLiteral(const std::string_view IntegerStr);
-std::optional<double> getFloatLiteral(const std::string_view FloatStr);
-std::optional<OperatorType> getOperatorType(const std::string_view OperatorStr);
-std::optional<KeywordType> getKeywordType(const std::string_view OperatorStr);
+std::optional<std::pair<IntegerType, std::size_t>> getIntegerLiteral(const std::string_view Source);
+
+std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::string_view Source);
+
+std::optional<std::pair<std::variant<OperatorType, DelimiterType>, std::size_t>>
+getOperatorOrDelimiterType(const std::string_view Source);
+
+std::optional<std::string> getName(const std::string_view Source);
 
 } // namespace detail
 

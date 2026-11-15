@@ -232,6 +232,10 @@ std::optional<std::pair<std::string, std::size_t>> matchExponent(const std::stri
 // https://docs.python.org/3/reference/lexical_analysis.html#integer-literals
 std::optional<std::pair<IntegerType, std::size_t>>
 getIntegerLiteral(const std::string_view Source) {
+  if (Source.empty()) {
+    return std::nullopt;
+  }
+
   auto IntValue = IntegerType{};
   const auto [ptr, ec] = std::from_chars(Source.cbegin(), Source.cend(), IntValue);
   if (ec == std::errc{}) {
@@ -251,7 +255,10 @@ getIntegerLiteral(const std::string_view Source) {
  * exponent:  ("e" | "E") ["+" | "-"] digitpart
  */
 std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::string_view Source) {
-  assert(!Source.empty());
+  if (Source.empty()) {
+    return std::nullopt;
+  }
+
   auto CurrPos = 0uz;
   auto FloatStr = std::string{};
 

@@ -419,7 +419,10 @@ std::optional<std::string> getName(const std::string_view Source) {
       CurrPos++;
     }
   }
-  return std::string(Source.cbegin(), Source.cbegin() + CurrPos);
+  if (CurrPos > 0) {
+    return std::string(Source.cbegin(), Source.cbegin() + CurrPos);
+  }
+  return std::nullopt;
 }
 
 } // namespace detail

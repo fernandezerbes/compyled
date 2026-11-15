@@ -246,7 +246,6 @@ getOperatorOrDelimiterType(const std::string_view Source) {
   case '*': {
     CurrPos++;
     if (CurrPos < Source.size()) {
-      CurrPos++;
       if (Source[CurrPos] == '*') {
         CurrPos++;
         if (CurrPos < Source.size() && Source[CurrPos] == '=') {
@@ -264,7 +263,6 @@ getOperatorOrDelimiterType(const std::string_view Source) {
   case '/': {
     CurrPos++;
     if (CurrPos < Source.size()) {
-      CurrPos++;
       if (Source[CurrPos] == '/') {
         CurrPos++;
         if (CurrPos < Source.size() && Source[CurrPos] == '=') {
@@ -314,7 +312,6 @@ getOperatorOrDelimiterType(const std::string_view Source) {
   case '<': {
     CurrPos++;
     if (CurrPos < Source.size()) {
-      CurrPos++;
       if (Source[CurrPos] == '<') {
         CurrPos++;
         if (CurrPos < Source.size() && Source[CurrPos] == '=') {
@@ -333,7 +330,6 @@ getOperatorOrDelimiterType(const std::string_view Source) {
   case '>': {
     CurrPos++;
     if (CurrPos < Source.size()) {
-      CurrPos++;
       if (Source[CurrPos] == '>') {
         CurrPos++;
         if (CurrPos < Source.size() && Source[CurrPos] == '=') {

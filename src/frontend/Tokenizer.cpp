@@ -17,11 +17,6 @@ namespace compyled::lexer {
 
 namespace {
 
-constexpr char WHITESPACE = ' ';
-constexpr char NEWLINE = '\n';
-constexpr char COLON = ':';
-constexpr char SEMICOLON = ';';
-
 static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD = {
     {"false", KeywordType::False},
     {"await", KeywordType::Await},
@@ -60,7 +55,6 @@ static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD
     {"yield", KeywordType::Yield},
 };
 
-constexpr auto *DELIMITERS = " :\n;";
 constexpr std::size_t DEFAULT_INDENT_SIZE = 4;
 
 } // namespace

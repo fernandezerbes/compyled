@@ -10,7 +10,6 @@
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <variant>
 
@@ -18,18 +17,19 @@ namespace compyled::lexer {
 
 namespace {
 
+// From https://docs.python.org/3/reference/lexical_analysis.html#keywords
 static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD = {
-    {"false", KeywordType::False},
+    {"False", KeywordType::False},
     {"await", KeywordType::Await},
     {"else", KeywordType::Else},
     {"import", KeywordType::Import},
     {"pass", KeywordType::Pass},
-    {"none", KeywordType::None},
+    {"None", KeywordType::None},
     {"break", KeywordType::Break},
     {"except", KeywordType::Except},
     {"in", KeywordType::In},
     {"raise", KeywordType::Raise},
-    {"true", KeywordType::True},
+    {"True", KeywordType::True},
     {"class", KeywordType::Class},
     {"finally", KeywordType::Finally},
     {"is", KeywordType::Is},
@@ -409,7 +409,6 @@ getOperatorOrDelimiterType(const std::string_view Source_) {
   std::unreachable();
 }
 
-// From https://docs.python.org/3/reference/lexical_analysis.html#keywords
 std::optional<std::string> getName(const std::string_view Source) {
   assert(!Source.empty());
   auto CurrPos = 0uz;

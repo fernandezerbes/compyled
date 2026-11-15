@@ -219,189 +219,189 @@ std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::stri
  *
  */
 std::optional<std::pair<std::variant<OperatorType, DelimiterType>, std::size_t>>
-getOperatorOrDelimiterType(const std::string_view Source_) {
-  auto CurrPos_ = 0uz;
-  switch (Source_[CurrPos_]) {
+getOperatorOrDelimiterType(const std::string_view Source) {
+  auto CurrPos = 0uz;
+  switch (Source[CurrPos]) {
   case '+': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::UnaryAdd, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::UnaryAdd, CurrPos};
     }
-    return std::pair{OperatorType::Add, CurrPos_};
+    return std::pair{OperatorType::Add, CurrPos};
   }
   case '-': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size()) {
-      if (Source_[CurrPos_] == '=') {
-        CurrPos_++;
-        return std::pair{OperatorType::UnarySubtract, CurrPos_};
-      } else if (Source_[CurrPos_] == '>') {
-        CurrPos_++;
-        return std::pair{DelimiterType::Arrow, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      if (Source[CurrPos] == '=') {
+        CurrPos++;
+        return std::pair{OperatorType::UnarySubtract, CurrPos};
+      } else if (Source[CurrPos] == '>') {
+        CurrPos++;
+        return std::pair{DelimiterType::Arrow, CurrPos};
       }
     }
-    return std::pair{OperatorType::Subtract, CurrPos_};
+    return std::pair{OperatorType::Subtract, CurrPos};
   }
   case '*': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size()) {
-      CurrPos_++;
-      if (Source_[CurrPos_] == '*') {
-        CurrPos_++;
-        if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-          CurrPos_++;
-          return std::pair{OperatorType::UnaryExponentiate, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      CurrPos++;
+      if (Source[CurrPos] == '*') {
+        CurrPos++;
+        if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+          CurrPos++;
+          return std::pair{OperatorType::UnaryExponentiate, CurrPos};
         }
-        return std::pair{OperatorType::Exponentiate, CurrPos_};
-      } else if (Source_[CurrPos_] == '=') {
-        CurrPos_++;
-        return std::pair{OperatorType::UnaryMultiply, CurrPos_};
+        return std::pair{OperatorType::Exponentiate, CurrPos};
+      } else if (Source[CurrPos] == '=') {
+        CurrPos++;
+        return std::pair{OperatorType::UnaryMultiply, CurrPos};
       }
     }
-    return std::pair{OperatorType::Multiply, CurrPos_};
+    return std::pair{OperatorType::Multiply, CurrPos};
   }
   case '/': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size()) {
-      CurrPos_++;
-      if (Source_[CurrPos_] == '/') {
-        CurrPos_++;
-        if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-          CurrPos_++;
-          return std::pair{OperatorType::UnaryIntegerDivide, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      CurrPos++;
+      if (Source[CurrPos] == '/') {
+        CurrPos++;
+        if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+          CurrPos++;
+          return std::pair{OperatorType::UnaryIntegerDivide, CurrPos};
         }
-        return std::pair{OperatorType::IntegerDivide, CurrPos_};
-      } else if (Source_[CurrPos_] == '=') {
-        CurrPos_++;
-        return std::pair{OperatorType::UnaryFloatDivide, CurrPos_};
+        return std::pair{OperatorType::IntegerDivide, CurrPos};
+      } else if (Source[CurrPos] == '=') {
+        CurrPos++;
+        return std::pair{OperatorType::UnaryFloatDivide, CurrPos};
       }
     }
-    return std::pair{OperatorType::FloatDivide, CurrPos_};
+    return std::pair{OperatorType::FloatDivide, CurrPos};
   }
   case '%': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::UnaryModulo, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::UnaryModulo, CurrPos};
     }
-    return std::pair{OperatorType::Modulo, CurrPos_};
+    return std::pair{OperatorType::Modulo, CurrPos};
   }
   case '&': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::UnaryBitwiseAnd, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::UnaryBitwiseAnd, CurrPos};
     }
-    return std::pair{OperatorType::BitwiseAnd, CurrPos_};
+    return std::pair{OperatorType::BitwiseAnd, CurrPos};
   }
   case '|': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::UnaryBitwiseOr, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::UnaryBitwiseOr, CurrPos};
     }
-    return std::pair{OperatorType::BitwiseOr, CurrPos_};
+    return std::pair{OperatorType::BitwiseOr, CurrPos};
   }
   case '^': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::UnaryBitwiseXor, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::UnaryBitwiseXor, CurrPos};
     }
-    return std::pair{OperatorType::BitwiseXor, CurrPos_};
+    return std::pair{OperatorType::BitwiseXor, CurrPos};
   }
   case '<': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size()) {
-      CurrPos_++;
-      if (Source_[CurrPos_] == '<') {
-        CurrPos_++;
-        if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-          CurrPos_++;
-          return std::pair{OperatorType::UnaryLeftShift, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      CurrPos++;
+      if (Source[CurrPos] == '<') {
+        CurrPos++;
+        if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+          CurrPos++;
+          return std::pair{OperatorType::UnaryLeftShift, CurrPos};
         }
-        return std::pair{OperatorType::LeftShift, CurrPos_};
-      } else if (Source_[CurrPos_] == '=') {
-        CurrPos_++;
-        return std::pair{OperatorType::LessOrEqual, CurrPos_};
+        return std::pair{OperatorType::LeftShift, CurrPos};
+      } else if (Source[CurrPos] == '=') {
+        CurrPos++;
+        return std::pair{OperatorType::LessOrEqual, CurrPos};
       }
-      return std::pair{OperatorType::Less, CurrPos_};
+      return std::pair{OperatorType::Less, CurrPos};
     }
-    return std::pair{OperatorType::Less, CurrPos_};
+    return std::pair{OperatorType::Less, CurrPos};
   }
   case '>': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size()) {
-      CurrPos_++;
-      if (Source_[CurrPos_] == '>') {
-        CurrPos_++;
-        if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-          CurrPos_++;
-          return std::pair{OperatorType::UnaryRightShift, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      CurrPos++;
+      if (Source[CurrPos] == '>') {
+        CurrPos++;
+        if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+          CurrPos++;
+          return std::pair{OperatorType::UnaryRightShift, CurrPos};
         }
-        return std::pair{OperatorType::RightShift, CurrPos_};
-      } else if (Source_[CurrPos_] == '=') {
-        CurrPos_++;
-        return std::pair{OperatorType::GreaterOrEqual, CurrPos_};
+        return std::pair{OperatorType::RightShift, CurrPos};
+      } else if (Source[CurrPos] == '=') {
+        CurrPos++;
+        return std::pair{OperatorType::GreaterOrEqual, CurrPos};
       }
     }
-    return std::pair{OperatorType::Greater, CurrPos_};
+    return std::pair{OperatorType::Greater, CurrPos};
   }
   case '~': {
-    return std::pair{OperatorType::BitwiseInvert, CurrPos_};
+    return std::pair{OperatorType::BitwiseInvert, CurrPos};
   }
   case '=': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::Equal, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::Equal, CurrPos};
     }
-    return std::pair{OperatorType::Assign, CurrPos_};
+    return std::pair{OperatorType::Assign, CurrPos};
   }
   case '!': {
-    CurrPos_++;
-    if (CurrPos_ < Source_.size() && Source_[CurrPos_] == '=') {
-      CurrPos_++;
-      return std::pair{OperatorType::NotEqual, CurrPos_};
+    CurrPos++;
+    if (CurrPos < Source.size() && Source[CurrPos] == '=') {
+      CurrPos++;
+      return std::pair{OperatorType::NotEqual, CurrPos};
     }
-    return std::pair{DelimiterType::Exclamation, CurrPos_};
+    return std::pair{DelimiterType::Exclamation, CurrPos};
   }
   case '(': {
-    CurrPos_++;
-    return std::pair{DelimiterType::LeftParenthesis, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::LeftParenthesis, CurrPos};
   }
   case ')': {
-    CurrPos_++;
-    return std::pair{DelimiterType::RightParenthesis, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::RightParenthesis, CurrPos};
   }
   case '[': {
-    CurrPos_++;
-    return std::pair{DelimiterType::LeftBracket, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::LeftBracket, CurrPos};
   }
   case ']': {
-    CurrPos_++;
-    return std::pair{DelimiterType::RightBracket, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::RightBracket, CurrPos};
   }
   case '{': {
-    CurrPos_++;
-    return std::pair{DelimiterType::LeftBraces, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::LeftBraces, CurrPos};
   }
   case '}': {
-    CurrPos_++;
-    return std::pair{DelimiterType::RightBraces, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::RightBraces, CurrPos};
   }
   case ',': {
-    CurrPos_++;
-    return std::pair{DelimiterType::Comma, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::Comma, CurrPos};
   }
   case ':': {
-    CurrPos_++;
-    return std::pair{DelimiterType::Colon, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::Colon, CurrPos};
   }
   case ';': {
-    CurrPos_++;
-    return std::pair{DelimiterType::Semicolon, CurrPos_};
+    CurrPos++;
+    return std::pair{DelimiterType::Semicolon, CurrPos};
   }
   default:
     return std::nullopt;

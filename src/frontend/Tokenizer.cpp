@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 
@@ -121,6 +122,27 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
     CurrLocation_.Column += Name->size();
     const auto it = STRING_TO_KEYWORD.find(*Name);
     if (it != STRING_TO_KEYWORD.cend()) {
+      switch (it->second) {
+      case KeywordType::And:
+        return Token{.Type = TokenType::Operator,
+                     .Location = StartLocation,
+                     .Value = OperatorType::LogicalAnd};
+      case KeywordType::Or:
+        return Token{.Type = TokenType::Operator,
+                     .Location = StartLocation,
+                     .Value = OperatorType::LogicalOr};
+      case KeywordType::Not:
+        return Token{.Type = TokenType::Operator,
+                     .Location = StartLocation,
+                     .Value = OperatorType::LogicalNot};
+      case KeywordType::True:
+        return Token{.Type = TokenType::Boolean, .Location = StartLocation, .Value = true};
+      case KeywordType::False:
+        return Token{.Type = TokenType::Boolean, .Location = StartLocation, .Value = false};
+
+      default:
+        // No other keywords are operators or booleans and don't need special treatment.
+      }
       return Token{.Type = TokenType::Keyword, .Location = StartLocation, .Value = it->second};
     } else {
       return Token{
@@ -388,7 +410,6 @@ getOperatorOrDelimiterType(const std::string_view Source_) {
 }
 
 // From https://docs.python.org/3/reference/lexical_analysis.html#keywords
-// Excludes "and", "or", and "not" because those are considered OperatorTypes.
 std::optional<std::string> getName(const std::string_view Source) {
   assert(!Source.empty());
   auto CurrPos = 0uz;

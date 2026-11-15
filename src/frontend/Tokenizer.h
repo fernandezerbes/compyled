@@ -20,6 +20,7 @@ struct SourceLocation {
 enum class TokenType {
   Integer,
   Float,
+  Boolean,
   Keyword,
   Operator,
   Delimiter,

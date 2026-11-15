@@ -8,6 +8,7 @@
 #include <iterator>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -165,11 +166,66 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
         .Type = TokenType::Integer, .Location = StartLocation, .Value = IntegerLiteral->first};
   }
 
-  return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_[0],
+  return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_.front(),
                                      CurrLocation_.Line, CurrLocation_.Column));
 }
 
 namespace detail {
+
+namespace {
+
+std::optional<std::pair<std::string, std::size_t>> matchDigitPart(const std::string_view Source) {
+  auto DigitPart = std::string{};
+  auto CurrPos = 0uz;
+  if (std::isdigit(Source[CurrPos])) {
+    DigitPart += Source[CurrPos];
+    CurrPos++;
+    while (CurrPos < Source.size()) {
+      if (Source[CurrPos] == '_') {
+        if (Source[CurrPos - 1] == '_') {
+          return std::nullopt;
+        }
+        // Don't add to DigitPart because underscores are not valid C++ numeric literals
+        CurrPos++;
+      }
+      if (CurrPos < Source.size()) {
+        if (!std::isdigit(Source[CurrPos])) {
+          return std::pair{DigitPart, CurrPos};
+        }
+
+        DigitPart += Source[CurrPos];
+        CurrPos++;
+      }
+    }
+    return std::pair{DigitPart, CurrPos};
+  }
+  return std::nullopt;
+}
+
+std::optional<std::pair<std::string, std::size_t>> matchExponent(const std::string_view Source) {
+  auto Exponent = std::string{};
+  auto CurrPos = 0uz;
+  if (Source[CurrPos] == 'e' || Source[CurrPos] == 'E') {
+    Exponent += Source[CurrPos];
+    CurrPos++;
+    if (CurrPos < Source.size() && (Source[CurrPos] == '+' || Source[CurrPos] == '-')) {
+      Exponent += Source[CurrPos];
+      CurrPos++;
+    }
+
+    if (CurrPos < Source.size()) {
+      const auto DigitPartAndCount = matchDigitPart({Source.cbegin() + CurrPos, Source.cend()});
+      if (DigitPartAndCount) {
+        Exponent += DigitPartAndCount->first;
+        CurrPos += DigitPartAndCount->second;
+        return std::pair{Exponent, CurrPos};
+      }
+    }
+  }
+  return std::nullopt;
+}
+
+} // namespace
 
 // TODO: Implement actual integer parsing as per
 // https://docs.python.org/3/reference/lexical_analysis.html#integer-literals
@@ -184,13 +240,87 @@ getIntegerLiteral(const std::string_view Source) {
   return std::nullopt;
 }
 
-// TODO: Implement actual floating point parsing as per
-// https://docs.python.org/3/reference/lexical_analysis.html#floating-point-literals
+// From https://docs.python.org/3/reference/lexical_analysis.html#floating-point-literals
+/*
+ * floatnumber:
+ *    | digitpart "." [digitpart] [exponent]
+ *    | "." digitpart [exponent]
+ *    | digitpart exponent
+ * digitpart: digit (["_"] digit)*
+ * exponent:  ("e" | "E") ["+" | "-"] digitpart
+ */
 std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::string_view Source) {
+  assert(!Source.empty());
+  auto CurrPos = 0uz;
+  auto FloatStr = std::string{};
+
+  if (Source[CurrPos] == '.') {
+    // | "." digitpart [exponent]
+    FloatStr += '.';
+    CurrPos++;
+    if (CurrPos < Source.size()) {
+      const auto DigitPartAndCount = matchDigitPart({Source.cbegin() + CurrPos, Source.cend()});
+      if (!DigitPartAndCount) {
+        return std::nullopt;
+      }
+      FloatStr += DigitPartAndCount->first;
+      CurrPos += DigitPartAndCount->second;
+    } else {
+      return std::nullopt;
+    }
+
+    if (CurrPos < Source.size()) {
+      const auto ExponentAndCount = matchExponent({Source.cbegin() + CurrPos, Source.cend()});
+      if (ExponentAndCount) {
+        FloatStr += ExponentAndCount->first;
+        CurrPos += ExponentAndCount->second;
+      }
+    }
+  } else if (const auto DigitPartAndCount =
+                 matchDigitPart({Source.cbegin() + CurrPos, Source.cend()})) {
+    FloatStr += DigitPartAndCount->first;
+    CurrPos += DigitPartAndCount->second;
+
+    if (CurrPos < Source.size()) {
+      if (Source[CurrPos] == '.') {
+        // | digitpart "." [digitpart] [exponent]
+        FloatStr += '.';
+        CurrPos++;
+        if (CurrPos < Source.size()) {
+          const auto DigitPartAndCount = matchDigitPart({Source.cbegin() + CurrPos, Source.cend()});
+          if (DigitPartAndCount) {
+            FloatStr += DigitPartAndCount->first;
+            CurrPos += DigitPartAndCount->second;
+          }
+        }
+
+        if (CurrPos < Source.size()) {
+          const auto ExponentAndCount = matchExponent({Source.cbegin() + CurrPos, Source.cend()});
+          if (ExponentAndCount) {
+            FloatStr += ExponentAndCount->first;
+            CurrPos += ExponentAndCount->second;
+          }
+        }
+      } else if (const auto ExponentAndCount =
+                     matchExponent({Source.cbegin() + CurrPos, Source.cend()})) {
+        // | digitpart exponent
+        FloatStr += ExponentAndCount->first;
+        CurrPos += ExponentAndCount->second;
+      } else {
+        return std::nullopt;
+      }
+    } else {
+      return std::nullopt;
+    }
+  } else {
+    return std::nullopt;
+  }
+
   auto FloatValue = FloatType{};
-  const auto [ptr, ec] = std::from_chars(Source.cbegin(), Source.cend(), FloatValue);
+  const auto [ptr, ec] =
+      std::from_chars(FloatStr.data(), FloatStr.data() + FloatStr.size(), FloatValue);
   if (ec == std::errc{}) {
-    return std::pair{FloatValue, std::distance(Source.cbegin(), ptr)};
+    return std::pair{FloatValue, CurrPos};
   }
 
   return std::nullopt;

@@ -82,6 +82,7 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
   const auto StartPos = CurrPos_;
   while (Source_[CurrPos_] == ' ' && (CurrPos_ - StartPos) < IndentSize_) {
     CurrPos_++;
+    CurrLocation_.Column++;
   }
 
   auto WhitespaceCount = CurrPos_ - StartPos;

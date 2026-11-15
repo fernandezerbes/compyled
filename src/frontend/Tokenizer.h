@@ -124,10 +124,11 @@ enum class KeywordType {
 
 using IntegerType = std::int64_t;
 using FloatType = std::double_t;
+using BooleanType = bool;
 
 struct Token {
-  using ValueType =
-      std::variant<std::string, IntegerType, FloatType, OperatorType, KeywordType, DelimiterType>;
+  using ValueType = std::variant<std::string, IntegerType, FloatType, BooleanType, OperatorType,
+                                 KeywordType, DelimiterType>;
 
   TokenType Type;
   SourceLocation Location;

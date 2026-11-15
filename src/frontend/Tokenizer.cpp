@@ -345,6 +345,7 @@ getOperatorOrDelimiterType(const std::string_view Source) {
     return std::pair{OperatorType::Greater, CurrPos};
   }
   case '~': {
+    CurrPos++;
     return std::pair{OperatorType::BitwiseInvert, CurrPos};
   }
   case '=': {

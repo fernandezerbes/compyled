@@ -91,7 +91,7 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
   } else if (WhitespaceCount == IndentSize_) {
     return Token{.Type = TokenType::Indentation, .Location = StartLocation};
   } else if (WhitespaceCount > 0 && WhitespaceCount < IndentSize_) {
-    return std::unexpected(std::format("Unexpected number of whitespaces '()' at line {}:{}",
+    return std::unexpected(std::format("Unexpected number of whitespaces '{}' at line {}:{}",
                                        WhitespaceCount, CurrLocation_.Line, CurrLocation_.Column));
   }
 
@@ -167,7 +167,7 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
         .Type = TokenType::Integer, .Location = StartLocation, .Value = IntegerLiteral->first};
   }
 
-  return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_.front(),
+  return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_[CurrPos_],
                                      CurrLocation_.Line, CurrLocation_.Column));
 }
 

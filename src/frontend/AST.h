@@ -40,10 +40,10 @@ public:
 };
 
 class FunctionCall : public ASTNode {
-  std::unique_ptr<ASTNode> Arguments_;
+  std::vector<std::unique_ptr<ASTNode>> Arguments_;
 
 public:
-  explicit FunctionCall(std::unique_ptr<ASTNode> &&Arguments);
+  explicit FunctionCall(std::vector<std::unique_ptr<ASTNode>> &&Arguments);
   virtual ~FunctionCall() = default;
 };
 

@@ -84,7 +84,32 @@ std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
 std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);
+
+std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (isKeyword(Token, lexer::KeywordType::Return)) {
+    return parseReturnStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::Pass)) {
+    return parsePassStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::Break)) {
+    return parseBreakStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::Continue)) {
+    return parseContinueStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::Global)) {
+    return parseGlobalStmt(Tokenizer);
+  }
+
+  return parseAssignment(Tokenizer);
+}
+
 std::unique_ptr<ast::ASTNode> parseCompoundStmt(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
   if (isKeyword(Token, lexer::KeywordType::Def)) {

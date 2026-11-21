@@ -105,4 +105,18 @@ public:
   virtual ~IfStmt() = default;
 };
 
+class ForStmt : public Stmt {
+  std::unique_ptr<ASTNode> Start_;
+  std::unique_ptr<ASTNode> Stop_;
+  std::unique_ptr<ASTNode> Step_;
+  std::unique_ptr<ASTNode> Block_;
+  std::unique_ptr<ASTNode> ElseBlock_;
+
+public:
+  ForStmt(std::unique_ptr<ASTNode> &&Start, std::unique_ptr<ASTNode> &&Stop,
+          std::unique_ptr<ASTNode> &&Step, std::unique_ptr<ASTNode> &&Block,
+          std::unique_ptr<ASTNode> &&ElseBlock);
+  ~ForStmt() override = default;
+};
+
 } // namespace compyled::ast

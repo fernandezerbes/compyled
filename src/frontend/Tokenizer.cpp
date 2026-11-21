@@ -20,7 +20,9 @@ namespace compyled::lexer {
 namespace {
 
 // From https://docs.python.org/3/reference/lexical_analysis.html#keywords
-// Plus the types int, float, bool
+// In addition:
+//  - Types int, float, bool
+//  - range
 static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD = {
     {"False", KeywordType::False},
     {"await", KeywordType::Await},
@@ -60,6 +62,7 @@ static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD
     {"int", KeywordType::Int},
     {"float", KeywordType::Float},
     {"bool", KeywordType::Bool},
+    {"range", KeywordType::Range},
 };
 
 constexpr std::size_t DEFAULT_INDENT_SIZE = 4;

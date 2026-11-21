@@ -76,7 +76,61 @@ std::unique_ptr<ast::ASTNode> parseIfStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseElifStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseElseBlock(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseWhileStmt(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseForStmt(lexer::Tokenizer &Tokenizer);
+
+std::unique_ptr<ast::ASTNode> parseForStmt(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::For))
+    return nullptr;
+
+  auto LoopVariableToken = Tokenizer.getNextToken();
+  if (!LoopVariableToken || LoopVariableToken->Type != lexer::TokenType::Identifier)
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::In))
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::Range))
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis))
+    return nullptr;
+
+  auto StartExpr = parseExpression(Tokenizer);
+  if (!StartExpr)
+    return nullptr;
+
+  auto StopExpr = std::unique_ptr<ast::ASTNode>{nullptr};
+  auto StepExpr = std::unique_ptr<ast::ASTNode>{nullptr};
+  Token = Tokenizer.getNextToken();
+  if (isDelimiter(Token, lexer::DelimiterType::Comma)) {
+    StopExpr = parseExpression(Tokenizer);
+    Token = Tokenizer.getNextToken();
+    if (isDelimiter(Token, lexer::DelimiterType::Comma)) {
+      StepExpr = parseExpression(Tokenizer);
+    }
+  }
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis))
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::Colon))
+    return nullptr;
+
+  auto Block = parseBlock(Tokenizer);
+  if (!Block)
+    return nullptr;
+
+  auto ElseBlock = parseElseBlock(Tokenizer);
+  return std::make_unique<ast::ForStmt>(std::move(StartExpr), std::move(StopExpr),
+                                        std::move(StepExpr), std::move(Block),
+                                        std::move(ElseBlock));
+}
+
 std::unique_ptr<ast::ASTNode> parseReturnAnnotation(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
   if (!isKeyword(Token, lexer::KeywordType::None)) {

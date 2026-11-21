@@ -129,6 +129,7 @@ enum class KeywordType {
   Int,
   Float,
   Bool,
+  Range,
 };
 
 using IntegerType = std::int64_t;

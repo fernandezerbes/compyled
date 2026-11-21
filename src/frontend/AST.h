@@ -154,4 +154,12 @@ public:
   ~WhileStmt() override = default;
 };
 
+class GlobalStmt : public Stmt {
+  std::vector<std::unique_ptr<ASTNode>> Names_;
+
+public:
+  explicit GlobalStmt(std::vector<std::unique_ptr<ASTNode>> Names);
+  ~GlobalStmt() override = default;
+};
+
 } // namespace compyled::ast

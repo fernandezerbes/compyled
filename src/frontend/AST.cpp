@@ -54,6 +54,8 @@ WhileStmt::WhileStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNo
     : Condition_(std::move(Condition)), Block_(std::move(Block)), ElseBlock_(std::move(ElseBlock)) {
 }
 
+GlobalStmt::GlobalStmt(std::vector<std::unique_ptr<ASTNode>> Names) : Names_(std::move(Names)) {}
+
 // Explicit instantiations
 template class Value<lexer::IntegerType>;
 template class Value<lexer::FloatType>;

@@ -27,8 +27,19 @@ BinaryOperation::BinaryOperation(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr
                                  const lexer::OperatorType Operator)
     : Lhs_(std::move(Lhs)), Rhs_(std::move(Rhs)), Operator_(Operator) {}
 
-UnaryOperation::UnaryOperation(std::unique_ptr<ASTNode> &&Rhs, const lexer::OperatorType Operator)
+UnaryOp::UnaryOp(std::unique_ptr<ASTNode> &&Rhs, const lexer::OperatorType Operator)
     : Rhs_(std::move(Rhs)), Operator_(Operator) {}
+
+Augassign::Augassign(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
+                     const lexer::OperatorType Operator)
+    : Lhs_(std::move(Lhs)), Rhs_(std::move(Rhs)), Operator_(Operator) {}
+
+TypedAssignment::TypedAssignment(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
+                                 std::unique_ptr<ASTNode> &&Type)
+    : Lhs_(std::move(Lhs)), Rhs_(std::move(Rhs)), Type_(std::move(Type)) {}
+
+Assignment::Assignment(std::vector<std::unique_ptr<ASTNode>> &&Lhss, std::unique_ptr<ASTNode> &&Rhs)
+    : Lhss_(std::move(Lhss)), Rhs_(std::move(Rhs)) {}
 
 IfExpr::IfExpr(std::unique_ptr<ASTNode> &&ExprIfTrue, std::unique_ptr<ASTNode> &&ExprIfFalse,
                std::unique_ptr<ASTNode> &&Condition)

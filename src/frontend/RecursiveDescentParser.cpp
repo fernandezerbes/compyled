@@ -4,6 +4,7 @@
 #include <cassert>
 #include <expected>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
@@ -50,6 +51,31 @@ bool isKeyword(const std::expected<lexer::Token, std::string> &Token,
          std::get<lexer::KeywordType>(Token->Value) != ExpectedType;
 }
 
+bool isAugassign(const std::expected<lexer::Token, std::string> &Token) {
+  if (!Token || Token->Type != lexer::TokenType::Operator)
+    return false;
+
+  switch (std::get<lexer::OperatorType>(Token->Value)) {
+  case lexer::OperatorType::UnaryAdd:
+  case lexer::OperatorType::UnarySubtract:
+  case lexer::OperatorType::UnaryMultiply:
+  case lexer::OperatorType::UnaryFloatDivide:
+  case lexer::OperatorType::UnaryModulo:
+  case lexer::OperatorType::UnaryBitwiseAnd:
+  case lexer::OperatorType::UnaryBitwiseOr:
+  case lexer::OperatorType::UnaryBitwiseXor:
+  case lexer::OperatorType::UnaryLeftShift:
+  case lexer::OperatorType::UnaryRightShift:
+  case lexer::OperatorType::UnaryExponentiate:
+  case lexer::OperatorType::UnaryIntegerDivide:
+    return true;
+  default:
+    return false;
+  }
+
+  return false;
+}
+
 lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &Token) {
   return std::get<lexer::OperatorType>(Token->Value);
 }
@@ -60,8 +86,54 @@ std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseCompoundStmt(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseAugassign(lexer::Tokenizer &Tokenizer);
+
+std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseExpression(Tokenizer);
+  if (!Lhs)
+    return nullptr;
+
+  auto Token = Tokenizer.getNextToken();
+  if (isAugassign(Token)) {
+    const auto Operator = getOperator(Token);
+
+    auto Rhs = parseExpression(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    return std::make_unique<ast::Augassign>(std::move(Lhs), std::move(Rhs), Operator);
+  }
+
+  if (isDelimiter(Token, lexer::DelimiterType::Colon)) {
+    auto Type = parseAnnotation(Tokenizer);
+    if (!Type)
+      return nullptr;
+
+    Token = Tokenizer.getNextToken();
+    if (!isOperator(Token, lexer::OperatorType::Assign))
+      return nullptr;
+
+    auto Rhs = parseExpression(Tokenizer);
+    return std::make_unique<ast::TypedAssignment>(std::move(Lhs), std::move(Rhs), std::move(Type));
+  }
+
+  if (!isOperator(Token, lexer::OperatorType::Assign))
+    return nullptr;
+
+  auto Lhss = std::vector<std::unique_ptr<ast::ASTNode>>{};
+  Lhss.push_back(std::move(Lhs));
+  auto Rhs = parseExpression(Tokenizer);
+  Token = Tokenizer.getNextToken();
+  while (isOperator(Token, lexer::OperatorType::Assign)) {
+    // For multi-assignment, what was previously on the lhs goes to the rhs.
+    Lhss.push_back(std::move(Rhs));
+    Rhs = parseExpression(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+  }
+
+  return std::make_unique<ast::Assignment>(std::move(Lhss), std::move(Rhs));
+}
+
 std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
   if (!isKeyword(Token, lexer::KeywordType::Return))
@@ -436,7 +508,7 @@ std::unique_ptr<ast::ASTNode> parseInversion(lexer::Tokenizer &Tokenizer) {
     if (!Rhs)
       return nullptr;
 
-    return std::make_unique<ast::UnaryOperation>(std::move(Rhs), getOperator(NotToken));
+    return std::make_unique<ast::UnaryOp>(std::move(Rhs), getOperator(NotToken));
   }
 
   return parseComparison(Tokenizer);
@@ -594,7 +666,7 @@ std::unique_ptr<ast::ASTNode> parseFactor(lexer::Tokenizer &Tokenizer) {
     auto Factor = parseFactor(Tokenizer);
     if (!Factor)
       return nullptr;
-    return std::make_unique<ast::UnaryOperation>(std::move(Factor), getOperator(Token));
+    return std::make_unique<ast::UnaryOp>(std::move(Factor), getOperator(Token));
   }
 
   return parsePower(Tokenizer);

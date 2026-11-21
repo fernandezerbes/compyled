@@ -90,13 +90,44 @@ public:
   virtual ~BinaryOperation() = default;
 };
 
-class UnaryOperation : public ASTNode {
+class UnaryOp : public ASTNode {
   std::unique_ptr<ASTNode> Rhs_;
   const lexer::OperatorType Operator_;
 
 public:
-  UnaryOperation(std::unique_ptr<ASTNode> &&Rhs, const lexer::OperatorType Operator);
-  virtual ~UnaryOperation() = default;
+  UnaryOp(std::unique_ptr<ASTNode> &&Rhs, const lexer::OperatorType Operator);
+  virtual ~UnaryOp() = default;
+};
+
+class Augassign : public ASTNode {
+  std::unique_ptr<ASTNode> Lhs_;
+  std::unique_ptr<ASTNode> Rhs_;
+  const lexer::OperatorType Operator_;
+
+public:
+  Augassign(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
+            const lexer::OperatorType Operator);
+  virtual ~Augassign() = default;
+};
+
+class TypedAssignment : public ASTNode {
+  std::unique_ptr<ASTNode> Lhs_;
+  std::unique_ptr<ASTNode> Rhs_;
+  std::unique_ptr<ASTNode> Type_;
+
+public:
+  TypedAssignment(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
+                  std::unique_ptr<ASTNode> &&Type);
+  virtual ~TypedAssignment() = default;
+};
+
+class Assignment : public ASTNode {
+  std::vector<std::unique_ptr<ASTNode>> Lhss_;
+  std::unique_ptr<ASTNode> Rhs_;
+
+public:
+  Assignment(std::vector<std::unique_ptr<ASTNode>> &&Lhss, std::unique_ptr<ASTNode> &&Rhs);
+  virtual ~Assignment() = default;
 };
 
 class IfExpr : public Expr {

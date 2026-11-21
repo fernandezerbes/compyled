@@ -27,8 +27,8 @@ IfExpr::IfExpr(std::unique_ptr<ASTNode> &&ExprIfTrue, std::unique_ptr<ASTNode> &
 Block::Block(std::vector<std::unique_ptr<Stmt>> &&Statements)
     : Statements_(std::move(Statements)) {}
 
-IfStmt::IfStmt(std::unique_ptr<Expr> &&Condition, std::unique_ptr<Block> &&StmtIfTrue,
-               std::unique_ptr<Stmt> &&StmtIfFalse)
+IfStmt::IfStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNode> &&StmtIfTrue,
+               std::unique_ptr<ASTNode> &&StmtIfFalse)
     : Condition_(std::move(Condition)), StmtIfTrue_(std::move(StmtIfTrue)),
       StmtIfFalse_(std::move(StmtIfFalse)) {}
 

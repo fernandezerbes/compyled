@@ -95,13 +95,13 @@ public:
 };
 
 class IfStmt : public Stmt {
-  std::unique_ptr<Expr> Condition_;
-  std::unique_ptr<Block> StmtIfTrue_;
-  std::unique_ptr<Stmt> StmtIfFalse_;
+  std::unique_ptr<ASTNode> Condition_;
+  std::unique_ptr<ASTNode> StmtIfTrue_;
+  std::unique_ptr<ASTNode> StmtIfFalse_;
 
 public:
-  IfStmt(std::unique_ptr<Expr> &&Condition, std::unique_ptr<Block> &&StmtIfTrue,
-         std::unique_ptr<Stmt> &&StmtIfFalse);
+  IfStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNode> &&StmtIfTrue,
+         std::unique_ptr<ASTNode> &&StmtIfFalse);
   virtual ~IfStmt() = default;
 };
 

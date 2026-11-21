@@ -1,4 +1,4 @@
-#include "RecursiveDescentParser.h"
+#include "Parser.h"
 #include "frontend/AST.h"
 #include "frontend/Tokenizer.h"
 #include <cassert>

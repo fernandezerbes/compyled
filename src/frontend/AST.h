@@ -162,4 +162,27 @@ public:
   ~GlobalStmt() override = default;
 };
 
+class ContinueStmt : public Stmt {
+public:
+  ~ContinueStmt() override = default;
+};
+
+class BreakStmt : public Stmt {
+public:
+  ~BreakStmt() override = default;
+};
+
+class PassStmt : public Stmt {
+public:
+  ~PassStmt() override = default;
+};
+
+class ReturnStmt : public Stmt {
+  std::unique_ptr<ASTNode> Expression_;
+
+public:
+  explicit ReturnStmt(std::unique_ptr<ASTNode> &&Expression);
+  ~ReturnStmt() override = default;
+};
+
 } // namespace compyled::ast

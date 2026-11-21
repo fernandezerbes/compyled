@@ -31,6 +31,7 @@ std::unique_ptr<ast::ASTNode> parseAugassign(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parsePassStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBreakStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseContinueStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer);

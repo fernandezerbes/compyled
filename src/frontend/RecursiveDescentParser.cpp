@@ -75,7 +75,31 @@ std::unique_ptr<ast::ASTNode> parseDefault(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseIfStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseElifStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseElseBlock(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseWhileStmt(lexer::Tokenizer &Tokenizer);
+
+std::unique_ptr<ast::ASTNode> parseWhileStmt(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::While))
+    return nullptr;
+
+  auto Condition = parseExpression(Tokenizer);
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::Colon))
+    return nullptr;
+
+  auto Block = parseBlock(Tokenizer);
+  if (!Block)
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  auto ElseBlock = std::unique_ptr<ast::ASTNode>{nullptr};
+  if (isKeyword(Token, lexer::KeywordType::Else)) {
+    ElseBlock = parseElseBlock(Tokenizer);
+  }
+
+  return std::make_unique<ast::WhileStmt>(std::move(Condition), std::move(Block),
+                                          std::move(ElseBlock));
+}
 
 std::unique_ptr<ast::ASTNode> parseForStmt(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();

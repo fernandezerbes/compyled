@@ -38,6 +38,11 @@ ForStmt::ForStmt(std::unique_ptr<ASTNode> &&Start, std::unique_ptr<ASTNode> &&St
     : Start_(std::move(Start)), Stop_(std::move(Stop)), Step_(std::move(Step)),
       Block_(std::move(Block)), ElseBlock_(std::move(ElseBlock)) {}
 
+WhileStmt::WhileStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNode> &&Block,
+                     std::unique_ptr<ASTNode> &&ElseBlock)
+    : Condition_(std::move(Condition)), Block_(std::move(Block)), ElseBlock_(std::move(ElseBlock)) {
+}
+
 // Explicit instantiations
 template class Value<lexer::IntegerType>;
 template class Value<lexer::FloatType>;

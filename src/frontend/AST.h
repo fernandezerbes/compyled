@@ -119,4 +119,15 @@ public:
   ~ForStmt() override = default;
 };
 
+class WhileStmt : public Stmt {
+  std::unique_ptr<ASTNode> Condition_;
+  std::unique_ptr<ASTNode> Block_;
+  std::unique_ptr<ASTNode> ElseBlock_;
+
+public:
+  WhileStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNode> &&Block,
+            std::unique_ptr<ASTNode> &&ElseBlock);
+  ~WhileStmt() override = default;
+};
+
 } // namespace compyled::ast

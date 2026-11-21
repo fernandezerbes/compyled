@@ -58,6 +58,19 @@ public:
   ~Parameter() override = default;
 };
 
+class FunctionDeclaration : public ASTNode {
+  std::unique_ptr<ASTNode> Name_;
+  std::vector<std::unique_ptr<ASTNode>> Parameters_;
+  std::unique_ptr<ASTNode> ReturnType_;
+  std::unique_ptr<ASTNode> Body_;
+
+public:
+  FunctionDeclaration(std::unique_ptr<ASTNode> &&Name,
+                      std::vector<std::unique_ptr<ASTNode>> &&Parameters,
+                      std::unique_ptr<ASTNode> &&ReturnType, std::unique_ptr<ASTNode> &&Body);
+  ~FunctionDeclaration() override = default;
+};
+
 class FunctionCall : public ASTNode {
   std::vector<std::unique_ptr<ASTNode>> Arguments_;
 

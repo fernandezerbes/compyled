@@ -67,8 +67,62 @@ std::unique_ptr<ast::ASTNode> parsePassStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBreakStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseParameters(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::Def))
+    return nullptr;
+
+  auto IdentifierToken = Tokenizer.getNextToken();
+  if (!IdentifierToken || IdentifierToken->Type != lexer::TokenType::Identifier)
+    return nullptr;
+
+  auto Name = parseAtom(Tokenizer);
+  if (!Name)
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis))
+    return nullptr;
+
+  auto Parameters = std::vector<std::unique_ptr<ast::ASTNode>>{};
+  auto Parameter = parseParameter(Tokenizer);
+  if (Parameter) {
+    Parameters.push_back(std::move(Parameter));
+    Token = Tokenizer.getNextToken();
+    while (isDelimiter(Token, lexer::DelimiterType::Comma)) {
+      Parameter = parseParameter(Tokenizer);
+      if (!Parameter)
+        break;
+
+      Parameters.push_back(std::move(Parameter));
+      Token = Tokenizer.getNextToken();
+    }
+  }
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis))
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::Arrow))
+    return nullptr;
+
+  auto ReturnType = parseReturnAnnotation(Tokenizer);
+  if (!ReturnType)
+    return nullptr;
+
+  Token = Tokenizer.getNextToken();
+  if (!isDelimiter(Token, lexer::DelimiterType::Colon))
+    return nullptr;
+
+  auto Body = parseBlock(Tokenizer);
+  if (!Body)
+    return nullptr;
+
+  return std::make_unique<ast::FunctionDeclaration>(std::move(Name), std::move(Parameters),
+                                                    std::move(ReturnType), std::move(Body));
+}
+
 std::unique_ptr<ast::ASTNode> parseParameter(lexer::Tokenizer &Tokenizer) {
   auto IdentifierToken = Tokenizer.getNextToken();
   if (!IdentifierToken || IdentifierToken->Type != lexer::TokenType::Identifier)

@@ -13,6 +13,13 @@ Parameter::Parameter(std::unique_ptr<ASTNode> &&Name, std::unique_ptr<ASTNode> &
                      std::unique_ptr<ASTNode> &&Default)
     : Name_(std::move(Name)), Type_(std::move(Type)), Default_(std::move(Default)) {}
 
+FunctionDeclaration::FunctionDeclaration(std::unique_ptr<ASTNode> &&Name,
+                                         std::vector<std::unique_ptr<ASTNode>> &&Parameters,
+                                         std::unique_ptr<ASTNode> &&ReturnType,
+                                         std::unique_ptr<ASTNode> &&Body)
+    : Name_(std::move(Name)), Parameters_(std::move(Parameters)),
+      ReturnType_(std::move(ReturnType)), Body_(std::move(Body)) {}
+
 FunctionCall::FunctionCall(std::vector<std::unique_ptr<ASTNode>> &&Arguments)
     : Arguments_(std::move(Arguments)) {}
 

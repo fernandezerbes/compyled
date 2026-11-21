@@ -97,7 +97,7 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
   if (WhitespaceCount == 1) {
     return Token{.Type = TokenType::Whitespace, .Location = StartLocation};
   } else if (WhitespaceCount == IndentSize_) {
-    return Token{.Type = TokenType::Indentation, .Location = StartLocation};
+    return Token{.Type = TokenType::Indent, .Location = StartLocation};
   } else if (WhitespaceCount > 0 && WhitespaceCount < IndentSize_) {
     return std::unexpected(std::format("Unexpected number of whitespaces '{}' at line {}:{}",
                                        WhitespaceCount, CurrLocation_.Line, CurrLocation_.Column));

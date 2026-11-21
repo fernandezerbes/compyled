@@ -55,7 +55,7 @@ lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &
 }
 
 std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseStatements(lexer::Tokenizer &Tokenizer);
+std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);
@@ -66,7 +66,25 @@ std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parsePassStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBreakStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer);
+
+std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!Token || Token->Type != lexer::TokenType::NewLine)
+    return parseSimpleStmts(Tokenizer);
+
+  Token = Tokenizer.getNextToken();
+  if (!Token || Token->Type != lexer::TokenType::Indent)
+    return nullptr;
+
+  auto Statements = parseStatements(Tokenizer);
+
+  Token = Tokenizer.getNextToken();
+  if (!Token || Token->Type != lexer::TokenType::Dedent)
+    return nullptr;
+
+  return std::make_unique<ast::Block>(std::move(Statements));
+}
+
 std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
   if (!isKeyword(Token, lexer::KeywordType::Def))

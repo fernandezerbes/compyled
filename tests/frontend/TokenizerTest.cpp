@@ -42,7 +42,7 @@ Expected Int(IntegerType V) { return {TokenType::Value, V}; }
 Expected Flt(FloatType V) { return {TokenType::Value, V}; }
 Expected Bool(BooleanType V) { return {TokenType::Value, V}; }
 Expected NL() { return {TokenType::NewLine}; }
-Expected Indent() { return {TokenType::Indentation}; }
+Expected Indent() { return {TokenType::Indent}; }
 Expected WS() { return {TokenType::Whitespace}; }
 
 // Tokenizes the whole source, stopping at (and excluding) the Eof token.
@@ -1257,7 +1257,7 @@ TEST(TokenizerPython, MultiLineProgram) {
   std::size_t Keywords = 0;
   for (const auto &Tok : *Got) {
     NewLines += Tok.Type == TokenType::NewLine;
-    Indents += Tok.Type == TokenType::Indentation;
+    Indents += Tok.Type == TokenType::Indent;
     Keywords += Tok.Type == TokenType::Keyword;
   }
   EXPECT_EQ(NewLines, 4u);

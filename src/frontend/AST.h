@@ -111,10 +111,10 @@ public:
 };
 
 class Block : public ASTNode {
-  std::vector<std::unique_ptr<Stmt>> Statements_;
+  std::vector<std::unique_ptr<ASTNode>> Statements_;
 
 public:
-  explicit Block(std::vector<std::unique_ptr<Stmt>> &&Statements);
+  explicit Block(std::vector<std::unique_ptr<ASTNode>> &&Statements);
   virtual ~Block() = default;
 };
 

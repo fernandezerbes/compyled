@@ -18,8 +18,10 @@ namespace detail {
 
 bool isDelimiter(const lexer::Token &Token, const lexer::DelimiterType ExpectedType);
 bool isOperator(const lexer::Token &Token, const lexer::OperatorType ExpectedType);
+bool isKeyword(const lexer::Token &Token, const lexer::KeywordType ExpectedType);
+
 std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseStatements(lexer::Tokenizer &Tokenizer);
+std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);

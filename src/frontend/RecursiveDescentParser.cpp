@@ -85,7 +85,26 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tok
 std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseCompoundStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseCompoundStmt(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (isKeyword(Token, lexer::KeywordType::Def)) {
+    return parseFunctionDef(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::If)) {
+    return parseIfElifStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::For)) {
+    return parseForStmt(Tokenizer);
+  }
+
+  if (isKeyword(Token, lexer::KeywordType::While)) {
+    return parseWhileStmt(Tokenizer);
+  }
+
+  return nullptr;
+}
 
 std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer) {
   auto Lhs = parseExpression(Tokenizer);

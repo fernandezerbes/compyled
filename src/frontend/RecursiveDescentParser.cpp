@@ -69,7 +69,27 @@ std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseParameters(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseParameter(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseParameter(lexer::Tokenizer &Tokenizer) {
+  auto IdentifierToken = Tokenizer.getNextToken();
+  if (!IdentifierToken || IdentifierToken->Type != lexer::TokenType::Identifier)
+    return nullptr;
+
+  auto Name = parseAtom(Tokenizer);
+  if (!Name)
+    return nullptr;
+
+  auto Type = parseAnnotation(Tokenizer);
+  if (!Type)
+    return nullptr;
+
+  auto Default = std::unique_ptr<ast::ASTNode>{nullptr};
+  auto Token = Tokenizer.getNextToken();
+  if (isOperator(Token, lexer::OperatorType::Assign)) {
+    Default = parseDefault(Tokenizer);
+  }
+
+  return std::make_unique<ast::Parameter>(std::move(Name), std::move(Type), std::move(Default));
+};
 
 std::unique_ptr<ast::ASTNode> parseAnnotation(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();

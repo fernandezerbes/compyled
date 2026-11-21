@@ -9,6 +9,10 @@ ValueType::ValueType(const lexer::BaseType Type) : Type_(Type) {}
 
 Identifier::Identifier(std::string &&Name) : Name_(std::move(Name)) {}
 
+Parameter::Parameter(std::unique_ptr<ASTNode> &&Name, std::unique_ptr<ASTNode> &&Type,
+                     std::unique_ptr<ASTNode> &&Default)
+    : Name_(std::move(Name)), Type_(std::move(Type)), Default_(std::move(Default)) {}
+
 FunctionCall::FunctionCall(std::vector<std::unique_ptr<ASTNode>> &&Arguments)
     : Arguments_(std::move(Arguments)) {}
 

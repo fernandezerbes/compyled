@@ -47,6 +47,17 @@ public:
   virtual ~Identifier() = default;
 };
 
+class Parameter : public ASTNode {
+  std::unique_ptr<ASTNode> Name_;
+  std::unique_ptr<ASTNode> Type_;
+  std::unique_ptr<ASTNode> Default_;
+
+public:
+  Parameter(std::unique_ptr<ASTNode> &&Name, std::unique_ptr<ASTNode> &&Type,
+            std::unique_ptr<ASTNode> &&Default);
+  ~Parameter() override = default;
+};
+
 class FunctionCall : public ASTNode {
   std::vector<std::unique_ptr<ASTNode>> Arguments_;
 

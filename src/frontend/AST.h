@@ -216,4 +216,13 @@ public:
   ~ReturnStmt() override = default;
 };
 
+class Program : public ASTNode {
+  std::vector<std::unique_ptr<ASTNode>> Statements_;
+
+public:
+  Program() = default;
+  explicit Program(std::vector<std::unique_ptr<ASTNode>> &&Statements);
+  ~Program() override = default;
+};
+
 } // namespace compyled::ast

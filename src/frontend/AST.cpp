@@ -70,6 +70,9 @@ GlobalStmt::GlobalStmt(std::vector<std::unique_ptr<ASTNode>> Names) : Names_(std
 ReturnStmt::ReturnStmt(std::unique_ptr<ASTNode> &&Expression)
     : Expression_(std::move(Expression)) {}
 
+Program::Program(std::vector<std::unique_ptr<ASTNode>> &&Statements)
+    : Statements_(std::move(Statements)) {}
+
 // Explicit instantiations
 template class Value<lexer::IntegerType>;
 template class Value<lexer::FloatType>;

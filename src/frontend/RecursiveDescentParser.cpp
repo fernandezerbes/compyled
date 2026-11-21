@@ -81,9 +81,33 @@ lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &
   return std::get<lexer::OperatorType>(Token->Value);
 }
 
-std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
-std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  auto Stmts = std::vector<std::unique_ptr<ast::ASTNode>>{};
+  while (Token && Token->Type != lexer::TokenType::Eof) {
+    auto OtherStatements = parseStatement(Tokenizer);
+    if (OtherStatements.empty())
+      return nullptr;
+
+    std::ranges::move(OtherStatements, std::back_inserter(Stmts));
+    Token = Tokenizer.getNextToken();
+  }
+
+  return std::make_unique<ast::Program>(std::move(Stmts));
+}
+
+std::vector<std::unique_ptr<ast::ASTNode>> parseStatement(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (isKeyword(Token, lexer::KeywordType::Def) || isKeyword(Token, lexer::KeywordType::If) ||
+      isKeyword(Token, lexer::KeywordType::For) || isKeyword(Token, lexer::KeywordType::While)) {
+    auto Stmts = std::vector<std::unique_ptr<ast::ASTNode>>{};
+    auto Stmt = parseCompoundStmt(Tokenizer);
+    Stmts.push_back(std::move(Stmt));
+    return Stmts;
+  }
+
+  return parseSimpleStmts(Tokenizer);
+}
 
 std::vector<std::unique_ptr<ast::ASTNode>> parseSimpleStmts(lexer::Tokenizer &Tokenizer) {
   auto Stmts = std::vector<std::unique_ptr<ast::ASTNode>>{};
@@ -270,7 +294,18 @@ std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer) {
   if (!Token || Token->Type != lexer::TokenType::Indent)
     return nullptr;
 
-  auto Statements = parseStatements(Tokenizer);
+  auto Statements = std::vector<std::unique_ptr<ast::ASTNode>>{};
+  while (Token && Token->Type != lexer::TokenType::Dedent) {
+    auto OtherStatements = parseStatement(Tokenizer);
+    if (OtherStatements.empty())
+      return nullptr;
+
+    std::ranges::move(OtherStatements, std::back_inserter(Statements));
+    Token = Tokenizer.getNextToken();
+  }
+
+  if (Token || Token->Type != lexer::TokenType::Dedent)
+    return nullptr;
 
   Token = Tokenizer.getNextToken();
   if (!Token || Token->Type != lexer::TokenType::Dedent)

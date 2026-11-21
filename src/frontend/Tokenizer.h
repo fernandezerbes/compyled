@@ -17,6 +17,12 @@ struct SourceLocation {
   std::size_t Column;
 };
 
+enum class ValueType {
+  Integer,
+  Float,
+  Boolean,
+};
+
 enum class TokenType {
   Integer,
   Float,

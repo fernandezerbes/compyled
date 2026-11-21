@@ -44,6 +44,187 @@ bool isOperator(const std::expected<lexer::Token, std::string> &Token,
          std::get<lexer::OperatorType>(Token->Value) != ExpectedType;
 }
 
+bool isKeyword(const std::expected<lexer::Token, std::string> &Token,
+               const lexer::KeywordType ExpectedType) {
+  return Token && Token->Type != lexer::TokenType::Keyword &&
+         std::get<lexer::KeywordType>(Token->Value) != ExpectedType;
+}
+
+lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &Token) {
+  return std::get<lexer::OperatorType>(Token->Value);
+}
+
+std::unique_ptr<ast::ASTNode> parseExpression(lexer::Tokenizer &Tokenizer) {
+  auto Expression = parseDisjunction(Tokenizer);
+  if (!Expression)
+    return nullptr;
+
+  auto IfToken = Tokenizer.getNextToken();
+  if (!isKeyword(IfToken, lexer::KeywordType::If))
+    return Expression;
+
+  auto Condition = parseDisjunction(Tokenizer);
+  if (!Condition)
+    return nullptr;
+
+  auto ElseToken = Tokenizer.getNextToken();
+  if (!isKeyword(IfToken, lexer::KeywordType::Else))
+    return nullptr;
+
+  auto ExprIfFalse = parseExpression(Tokenizer);
+  return std::make_unique<ast::IfExpr>(std::move(Expression), std::move(ExprIfFalse),
+                                       std::move(Condition));
+}
+
+std::unique_ptr<ast::ASTNode> parseDisjunction(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseConjunction(Tokenizer);
+
+  while (auto OperatorToken = Tokenizer.getNextToken()) {
+    if (!isOperator(OperatorToken, lexer::OperatorType::LogicalOr)) {
+      return nullptr;
+    }
+
+    auto Rhs = parseConjunction(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(
+        std::move(Lhs), std::move(Rhs), std::get<lexer::OperatorType>(OperatorToken->Value));
+  }
+
+  return Lhs;
+}
+
+std::unique_ptr<ast::ASTNode> parseConjunction(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseInversion(Tokenizer);
+
+  while (auto OperatorToken = Tokenizer.getNextToken()) {
+    if (!isOperator(OperatorToken, lexer::OperatorType::LogicalAnd)) {
+      return nullptr;
+    }
+
+    auto Rhs = parseInversion(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(
+        std::move(Lhs), std::move(Rhs), std::get<lexer::OperatorType>(OperatorToken->Value));
+  }
+
+  return Lhs;
+}
+
+std::unique_ptr<ast::ASTNode> parseInversion(lexer::Tokenizer &Tokenizer) {
+  auto NotToken = Tokenizer.getNextToken();
+  if (NotToken) {
+    auto Rhs = parseInversion(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    return std::make_unique<ast::UnaryOperation>(std::move(Rhs), getOperator(NotToken));
+  }
+
+  return parseComparison(Tokenizer);
+}
+
+std::unique_ptr<ast::ASTNode> parseComparison(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseBitwiseOr(Tokenizer);
+
+  auto OperatorToken = Tokenizer.getNextToken();
+  if (!OperatorToken)
+    return Lhs;
+
+  if (isOperator(OperatorToken, lexer::OperatorType::Equal) ||
+      isOperator(OperatorToken, lexer::OperatorType::NotEqual) ||
+      isOperator(OperatorToken, lexer::OperatorType::LessOrEqual) ||
+      isOperator(OperatorToken, lexer::OperatorType::Less) ||
+      isOperator(OperatorToken, lexer::OperatorType::GreaterOrEqual) ||
+      isOperator(OperatorToken, lexer::OperatorType::Greater)) {
+    auto Rhs = parseBitwiseOr(Tokenizer);
+    return std::make_unique<ast::BinaryOperation>(
+        std::move(Lhs), std::move(Rhs), std::get<lexer::OperatorType>(OperatorToken->Value));
+  }
+
+  return nullptr;
+}
+
+std::unique_ptr<ast::ASTNode> parseBitwiseOr(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseBitwiseXor(Tokenizer);
+
+  while (auto OperatorToken = Tokenizer.getNextToken()) {
+    if (!isOperator(OperatorToken, lexer::OperatorType::BitwiseOr)) {
+      break;
+    }
+
+    auto Rhs = parseBitwiseXor(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(
+        std::move(Lhs), std::move(Rhs), std::get<lexer::OperatorType>(OperatorToken->Value));
+  }
+
+  return Lhs;
+}
+
+std::unique_ptr<ast::ASTNode> parseBitwiseXor(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseBitwiseAnd(Tokenizer);
+
+  while (auto Operator = Tokenizer.getNextToken()) {
+    if (!isOperator(Operator, lexer::OperatorType::BitwiseXor)) {
+      break;
+    }
+
+    auto Rhs = parseBitwiseAnd(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
+                                                 std::get<lexer::OperatorType>(Operator->Value));
+  }
+
+  return Lhs;
+}
+
+std::unique_ptr<ast::ASTNode> parseBitwiseAnd(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseShiftExpr(Tokenizer);
+
+  while (auto Operator = Tokenizer.getNextToken()) {
+    if (!isOperator(Operator, lexer::OperatorType::BitwiseAnd)) {
+      break;
+    }
+
+    auto Rhs = parseShiftExpr(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
+                                                 std::get<lexer::OperatorType>(Operator->Value));
+  }
+
+  return Lhs;
+}
+
+std::unique_ptr<ast::ASTNode> parseShiftExpr(lexer::Tokenizer &Tokenizer) {
+  auto Lhs = parseSum(Tokenizer);
+
+  while (auto Operator = Tokenizer.getNextToken()) {
+    if (!isOperator(Operator, lexer::OperatorType::LeftShift) ||
+        !isOperator(Operator, lexer::OperatorType::RightShift)) {
+      break;
+    }
+
+    auto Rhs = parseSum(Tokenizer);
+    if (!Rhs)
+      return nullptr;
+
+    Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
+                                                 std::get<lexer::OperatorType>(Operator->Value));
+  }
+
+  return Lhs;
+}
+
 std::unique_ptr<ast::ASTNode> parseSum(lexer::Tokenizer &Tokenizer) {
   auto Lhs = parseTerm(Tokenizer);
 
@@ -94,7 +275,11 @@ std::unique_ptr<ast::ASTNode> parseFactor(lexer::Tokenizer &Tokenizer) {
   if (isOperator(Token, lexer::OperatorType::Add) ||
       isOperator(Token, lexer::OperatorType::Subtract) ||
       isOperator(Token, lexer::OperatorType::BitwiseInvert)) {
-    return parseFactor(Tokenizer);
+
+    auto Factor = parseFactor(Tokenizer);
+    if (!Factor)
+      return nullptr;
+    return std::make_unique<ast::UnaryOperation>(std::move(Factor), getOperator(Token));
   }
 
   return parsePower(Tokenizer);
@@ -107,7 +292,7 @@ std::unique_ptr<ast::ASTNode> parsePower(lexer::Tokenizer &Tokenizer) {
 
   const auto PowerOp = Tokenizer.getNextToken();
   if (!isOperator(PowerOp, lexer::OperatorType::Exponentiate)) {
-    return nullptr;
+    return Primary;
   }
 
   auto Factor = parseFactor(Tokenizer);
@@ -140,6 +325,52 @@ std::unique_ptr<ast::ASTNode> parsePrimary(lexer::Tokenizer &Tokenizer) {
   return Atom;
 }
 
+std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!Token)
+    return nullptr;
+
+  switch (Token->Type) {
+  case compyled::lexer::TokenType::Boolean:
+    assert(std::holds_alternative<lexer::BooleanType>(Token->Value));
+    return std::make_unique<ast::Value<lexer::BooleanType>>(
+        std::get<lexer::BooleanType>(Token->Value));
+  case compyled::lexer::TokenType::Integer:
+    assert(std::holds_alternative<lexer::IntegerType>(Token->Value));
+    return std::make_unique<ast::Value<lexer::IntegerType>>(
+        std::get<lexer::IntegerType>(Token->Value));
+  case compyled::lexer::TokenType::Float:
+    assert(std::holds_alternative<lexer::FloatType>(Token->Value));
+    return std::make_unique<ast::Value<lexer::FloatType>>(std::get<lexer::FloatType>(Token->Value));
+  case compyled::lexer::TokenType::Identifier:
+    assert(std::holds_alternative<std::string>(Token->Value));
+    return std::make_unique<ast::Identifier>(std::move(std::get<std::string>(Token->Value)));
+  case compyled::lexer::TokenType::Delimiter:
+    return parseGroup(Tokenizer);
+  default:
+    return nullptr;
+  }
+
+  std::unreachable();
+}
+
+std::unique_ptr<ast::ASTNode> parseGroup(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+
+  if (isDelimiter(Token, lexer::DelimiterType::LeftParenthesis)) {
+    return nullptr;
+  }
+
+  auto Expression = parseExpression(Tokenizer);
+
+  Token = Tokenizer.getNextToken();
+  if (isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
+    return nullptr;
+  }
+
+  return Expression;
+}
+
 std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Tokenizer) {
   auto Expr = parseExpression(Tokenizer);
   if (!Expr) {
@@ -162,54 +393,6 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Toke
   }
 
   return Args;
-}
-
-std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
-  auto Token = Tokenizer.getNextToken();
-  if (!Token)
-    return nullptr;
-
-  switch (Token->Type) {
-  case compyled::lexer::TokenType::Boolean:
-    assert(std::holds_alternative<lexer::BooleanType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::BooleanType>>(
-        std::get<lexer::BooleanType>(Token->Value));
-  case compyled::lexer::TokenType::Integer:
-    assert(std::holds_alternative<lexer::IntegerType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::IntegerType>>(
-        std::get<lexer::IntegerType>(Token->Value));
-  case compyled::lexer::TokenType::Float:
-    assert(std::holds_alternative<lexer::FloatType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::FloatType>>(std::get<lexer::FloatType>(Token->Value));
-  case compyled::lexer::TokenType::Identifier:
-    assert(std::holds_alternative<std::string>(Token->Value));
-    return std::make_unique<ast::Identifier>(std::move(std::get<std::string>(Token->Value)));
-  case compyled::lexer::TokenType::Delimiter:
-    return parseGroup(Tokenizer, std::move(*Token));
-  default:
-    return nullptr;
-  }
-
-  std::unreachable();
-}
-
-std::unique_ptr<ast::ASTNode> parseGroup(lexer::Tokenizer &Tokenizer, lexer::Token &&FirstToken) {
-  assert(std::holds_alternative<lexer::DelimiterType>(FirstToken.Value));
-
-  if (FirstToken.Type != lexer::TokenType::Delimiter ||
-      std::get<lexer::DelimiterType>(FirstToken.Value) != lexer::DelimiterType::LeftParenthesis) {
-    return nullptr;
-  }
-
-  auto Expression = parseExpression(Tokenizer);
-
-  const auto Token = Tokenizer.getNextToken();
-  if (!Token || Token->Type != lexer::TokenType::Delimiter ||
-      std::get<lexer::DelimiterType>(Token->Value) != lexer::DelimiterType::RightParenthesis) {
-    return nullptr;
-  }
-
-  return Expression;
 }
 
 } // namespace detail

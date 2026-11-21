@@ -31,6 +31,14 @@ public:
   virtual ~Value() = default;
 };
 
+class ValueType : public ASTNode {
+  lexer::ValueType Type_;
+
+public:
+  explicit ValueType(const lexer::ValueType Type);
+  ~ValueType() override = default;
+};
+
 class Identifier : public ASTNode {
   std::string Name_;
 

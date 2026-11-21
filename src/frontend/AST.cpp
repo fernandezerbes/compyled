@@ -5,7 +5,7 @@ namespace compyled::ast {
 
 template <typename T> Value<T>::Value(T Value) : Value_(Value) {}
 
-ValueType::ValueType(const lexer::ValueType Type) : Type_(Type) {}
+ValueType::ValueType(const lexer::BaseType Type) : Type_(Type) {}
 
 Identifier::Identifier(std::string &&Name) : Name_(std::move(Name)) {}
 

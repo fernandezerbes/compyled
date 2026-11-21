@@ -32,10 +32,10 @@ public:
 };
 
 class ValueType : public ASTNode {
-  lexer::ValueType Type_;
+  lexer::BaseType Type_;
 
 public:
-  explicit ValueType(const lexer::ValueType Type);
+  explicit ValueType(const lexer::BaseType Type);
   ~ValueType() override = default;
 };
 

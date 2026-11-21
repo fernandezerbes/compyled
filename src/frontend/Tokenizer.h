@@ -17,16 +17,16 @@ struct SourceLocation {
   std::size_t Column;
 };
 
-enum class ValueType {
+enum class BaseType {
   Integer,
   Float,
   Boolean,
+  None,
 };
 
 enum class TokenType {
-  Integer,
-  Float,
-  Boolean,
+  BaseType,
+  Value,
   Keyword,
   Operator,
   Delimiter,
@@ -126,6 +126,9 @@ enum class KeywordType {
   If,
   Or,
   Yield,
+  Int,
+  Float,
+  Bool,
 };
 
 using IntegerType = std::int64_t;
@@ -134,7 +137,7 @@ using BooleanType = bool;
 
 struct Token {
   using ValueType = std::variant<std::string, IntegerType, FloatType, BooleanType, OperatorType,
-                                 KeywordType, DelimiterType>;
+                                 KeywordType, DelimiterType, BaseType>;
 
   TokenType Type;
   SourceLocation Location;

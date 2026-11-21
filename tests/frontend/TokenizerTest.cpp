@@ -38,9 +38,9 @@ Expected Kw(KeywordType K) { return {TokenType::Keyword, K}; }
 Expected Op(OperatorType O) { return {TokenType::Operator, O}; }
 Expected Delim(DelimiterType D) { return {TokenType::Delimiter, D}; }
 Expected Id(std::string Name) { return {TokenType::Identifier, std::move(Name)}; }
-Expected Int(IntegerType V) { return {TokenType::Integer, V}; }
-Expected Flt(FloatType V) { return {TokenType::Float, V}; }
-Expected Bool(BooleanType V) { return {TokenType::Boolean, V}; }
+Expected Int(IntegerType V) { return {TokenType::Value, V}; }
+Expected Flt(FloatType V) { return {TokenType::Value, V}; }
+Expected Bool(BooleanType V) { return {TokenType::Value, V}; }
 Expected NL() { return {TokenType::NewLine}; }
 Expected Indent() { return {TokenType::Indentation}; }
 Expected WS() { return {TokenType::Whitespace}; }
@@ -175,7 +175,8 @@ TEST(TokenizerIntegers, IntegerIsNotMistakenForFloat) {
   auto Got = lexAll("42", false);
   ASSERT_TRUE(Got.has_value()) << Got.error();
   ASSERT_EQ(Got->size(), 1u);
-  EXPECT_EQ((*Got)[0].Type, TokenType::Integer);
+  ASSERT_EQ((*Got)[0].Type, TokenType::Value);
+  EXPECT_TRUE(std::holds_alternative<IntegerType>((*Got)[0].Value));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -205,7 +206,8 @@ TEST(TokenizerFloats, FloatTypeIsFloat) {
   auto Got = lexAll("3.14", false);
   ASSERT_TRUE(Got.has_value()) << Got.error();
   ASSERT_EQ(Got->size(), 1u);
-  EXPECT_EQ((*Got)[0].Type, TokenType::Float);
+  ASSERT_EQ((*Got)[0].Type, TokenType::Value);
+  EXPECT_TRUE(std::holds_alternative<FloatType>((*Got)[0].Value));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -790,7 +792,7 @@ TEST(TokenizerBooleans, AreNotKeywords) {
   auto Got = lexAll("True False", false);
   ASSERT_TRUE(Got.has_value());
   for (const auto &Tok : *Got) {
-    EXPECT_EQ(Tok.Type, TokenType::Boolean);
+    EXPECT_EQ((*Got)[0].Type, TokenType::Value);
   }
 }
 
@@ -909,7 +911,7 @@ TEST(TokenizerNumbers, IntegerAboveInt64MaxIsNotSilentlyWrapped) {
   auto Got = lexAll("9223372036854775808", false);
   if (Got.has_value()) {
     ASSERT_EQ(Got->size(), 1u);
-    EXPECT_NE(Got->front().Type, TokenType::Integer)
+    EXPECT_NE(Got->front().Type, TokenType::Value)
         << "value above INT64_MAX must not be reported as an Integer";
   }
 }
@@ -917,7 +919,9 @@ TEST(TokenizerNumbers, DISABLED_UnderscoreSeparatedInteger) { expectTokens("1_00
 TEST(TokenizerNumbers, DoubleUnderscoreIsNotANumber) {
   auto Got = lexAll("1__0", false);
   if (Got.has_value()) {
-    EXPECT_FALSE(Got->size() == 1 && (*Got)[0].Type == TokenType::Integer);
+    ASSERT_NE(Got->size(), 1);
+    ASSERT_NE((*Got)[0].Type, TokenType::Value);
+    EXPECT_FALSE(std::holds_alternative<IntegerType>((*Got)[0].Value));
   }
 }
 
@@ -957,7 +961,7 @@ TEST(TokenizerLocationsExtra, BooleanLocationsAndColumns) {
       Toks.push_back(*N);
   }
   ASSERT_EQ(Toks.size(), 3u);
-  EXPECT_EQ(Toks[2].Type, TokenType::Boolean);
+  EXPECT_EQ(Toks[2].Type, TokenType::Value);
   EXPECT_EQ(Toks[2].Location.Column, 4u);
   EXPECT_EQ(Toks[2].Location.Line, 0u);
 }

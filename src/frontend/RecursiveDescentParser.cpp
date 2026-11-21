@@ -54,6 +54,46 @@ lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &
   return std::get<lexer::OperatorType>(Token->Value);
 }
 
+std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseStatements(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseCompoundStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseAugassign(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parsePassStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseBreakStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseParameters(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseParameter(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseAnnotation(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseDefault(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseIfStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseElifStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseElseBlock(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseWhileStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseForStmt(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseReturnAnnotation(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!isKeyword(Token, lexer::KeywordType::None)) {
+    return std::make_unique<ast::ValueType>(lexer::BaseType::None);
+  }
+
+  return parseTypeExpression(Tokenizer);
+}
+
+std::unique_ptr<ast::ASTNode> parseTypeExpression(lexer::Tokenizer &Tokenizer) {
+  auto Token = Tokenizer.getNextToken();
+  if (!Token || Token->Type != lexer::TokenType::BaseType)
+    return nullptr;
+
+  return std::make_unique<ast::ValueType>(std::get<lexer::BaseType>(Token->Value));
+};
+
 std::unique_ptr<ast::ASTNode> parseExpression(lexer::Tokenizer &Tokenizer) {
   auto Expression = parseDisjunction(Tokenizer);
   if (!Expression)
@@ -331,17 +371,19 @@ std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
     return nullptr;
 
   switch (Token->Type) {
-  case compyled::lexer::TokenType::Boolean:
-    assert(std::holds_alternative<lexer::BooleanType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::BooleanType>>(
-        std::get<lexer::BooleanType>(Token->Value));
-  case compyled::lexer::TokenType::Integer:
-    assert(std::holds_alternative<lexer::IntegerType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::IntegerType>>(
-        std::get<lexer::IntegerType>(Token->Value));
-  case compyled::lexer::TokenType::Float:
-    assert(std::holds_alternative<lexer::FloatType>(Token->Value));
-    return std::make_unique<ast::Value<lexer::FloatType>>(std::get<lexer::FloatType>(Token->Value));
+  case compyled::lexer::TokenType::Value: {
+    if (std::holds_alternative<lexer::IntegerType>(Token->Value)) {
+      return std::make_unique<ast::Value<lexer::IntegerType>>(
+          std::get<lexer::IntegerType>(Token->Value));
+    } else if (std::holds_alternative<lexer::FloatType>(Token->Value)) {
+      return std::make_unique<ast::Value<lexer::FloatType>>(
+          std::get<lexer::FloatType>(Token->Value));
+    } else if (std::holds_alternative<lexer::FloatType>(Token->Value)) {
+      return std::make_unique<ast::Value<lexer::BooleanType>>(
+          std::get<lexer::BooleanType>(Token->Value));
+    }
+    return nullptr;
+  }
   case compyled::lexer::TokenType::Identifier:
     assert(std::holds_alternative<std::string>(Token->Value));
     return std::make_unique<ast::Identifier>(std::move(std::get<std::string>(Token->Value)));

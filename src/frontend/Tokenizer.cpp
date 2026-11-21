@@ -6,6 +6,7 @@
 #include <expected>
 #include <format>
 #include <iterator>
+#include <limits>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -19,6 +20,7 @@ namespace compyled::lexer {
 namespace {
 
 // From https://docs.python.org/3/reference/lexical_analysis.html#keywords
+// Plus the types int, float, bool
 static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD = {
     {"False", KeywordType::False},
     {"await", KeywordType::Await},
@@ -55,6 +57,9 @@ static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD
     {"if", KeywordType::If},
     {"or", KeywordType::Or},
     {"yield", KeywordType::Yield},
+    {"int", KeywordType::Int},
+    {"float", KeywordType::Float},
+    {"bool", KeywordType::Bool},
 };
 
 constexpr std::size_t DEFAULT_INDENT_SIZE = 4;
@@ -138,10 +143,18 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
                      .Location = StartLocation,
                      .Value = OperatorType::LogicalNot};
       case KeywordType::True:
-        return Token{.Type = TokenType::Boolean, .Location = StartLocation, .Value = true};
+        return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = true};
       case KeywordType::False:
-        return Token{.Type = TokenType::Boolean, .Location = StartLocation, .Value = false};
-
+        return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = false};
+      case KeywordType::Int:
+        return Token{
+            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Integer};
+      case KeywordType::Float:
+        return Token{
+            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Float};
+      case KeywordType::Bool:
+        return Token{
+            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Boolean};
       default:
         // No other keywords are operators or booleans and don't need special treatment.
       }
@@ -156,15 +169,21 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
   if (FloatLiteral) {
     CurrPos_ += FloatLiteral->second;
     CurrLocation_.Column += FloatLiteral->second;
-    return Token{.Type = TokenType::Float, .Location = StartLocation, .Value = FloatLiteral->first};
+    return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = FloatLiteral->first};
   }
 
   const auto IntegerLiteral = detail::getIntegerLiteral(RemainingSource);
   if (IntegerLiteral) {
     CurrPos_ += IntegerLiteral->second;
     CurrLocation_.Column += IntegerLiteral->second;
+    if (IntegerLiteral->first > std::numeric_limits<IntegerType>::max()) {
+      return std::unexpected(
+          std::format("Integer '{}' at line {}:{} exceeds the maximum 64-bit integer of {}",
+                      IntegerLiteral->first, CurrLocation_.Line, CurrLocation_.Column,
+                      std::numeric_limits<IntegerType>::max()));
+    }
     return Token{
-        .Type = TokenType::Integer, .Location = StartLocation, .Value = IntegerLiteral->first};
+        .Type = TokenType::Value, .Location = StartLocation, .Value = IntegerLiteral->first};
   }
 
   return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_[CurrPos_],

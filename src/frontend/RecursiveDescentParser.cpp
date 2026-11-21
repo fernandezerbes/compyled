@@ -3,6 +3,7 @@
 #include "frontend/Tokenizer.h"
 #include <cassert>
 #include <expected>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <string>
@@ -83,7 +84,28 @@ lexer::OperatorType getOperator(const std::expected<lexer::Token, std::string> &
 std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
 std::vector<std::unique_ptr<ast::ASTNode>> parseStatements(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseStatement(lexer::Tokenizer &Tokenizer);
-std::unique_ptr<ast::ASTNode> parseSimpleStmts(lexer::Tokenizer &Tokenizer);
+
+std::vector<std::unique_ptr<ast::ASTNode>> parseSimpleStmts(lexer::Tokenizer &Tokenizer) {
+  auto Stmts = std::vector<std::unique_ptr<ast::ASTNode>>{};
+  auto SimpleStmt = parseSimpleStmt(Tokenizer);
+  Stmts.push_back(std::move(SimpleStmt));
+  auto Token = Tokenizer.getNextToken();
+  if (Token && Token->Type == lexer::TokenType::NewLine) {
+    return Stmts;
+  }
+
+  if (isDelimiter(Token, lexer::DelimiterType::Semicolon)) {
+    Token = Tokenizer.getNextToken();
+    if (Token && Token->Type == lexer::TokenType::NewLine) {
+      return Stmts;
+    }
+
+    auto AdditionalStmts = parseSimpleStmts(Tokenizer);
+    std::ranges::move(AdditionalStmts, std::back_inserter(Stmts));
+  }
+
+  return Stmts;
+}
 
 std::unique_ptr<ast::ASTNode> parseSimpleStmt(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
@@ -239,8 +261,10 @@ std::unique_ptr<ast::ASTNode> parseGlobalStmt(lexer::Tokenizer &Tokenizer) {
 
 std::unique_ptr<ast::ASTNode> parseBlock(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.getNextToken();
-  if (!Token || Token->Type != lexer::TokenType::NewLine)
-    return parseSimpleStmts(Tokenizer);
+  if (!Token || Token->Type != lexer::TokenType::NewLine) {
+    auto Statements = parseSimpleStmts(Tokenizer);
+    return std::make_unique<ast::Block>(std::move(Statements));
+  }
 
   Token = Tokenizer.getNextToken();
   if (!Token || Token->Type != lexer::TokenType::Indent)

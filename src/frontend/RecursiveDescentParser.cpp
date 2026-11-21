@@ -5,34 +5,12 @@
 #include <expected>
 #include <iterator>
 #include <memory>
-#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
 #include <vector>
 
 namespace compyled::parser {
-
-RecursiveDescentParser::RecursiveDescentParser(lexer::Tokenizer &Tokenizer)
-    : Tokenizer_(Tokenizer) {}
-
-std::unique_ptr<ast::ASTNode> RecursiveDescentParser::BuildAST() {
-  auto Root = std::make_unique<ast::ASTNode>();
-  auto Token = Tokenizer_.getNextToken();
-  while (Token) {
-    if (!Token) {
-      return nullptr;
-    }
-
-    if (Token->Type == lexer::TokenType::Eof) {
-      return Root;
-    }
-  }
-
-  return Root;
-}
-
-namespace detail {
 
 bool isDelimiter(const std::expected<lexer::Token, std::string> &Token,
                  const lexer::DelimiterType ExpectedType) {
@@ -886,7 +864,5 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Toke
 
   return Args;
 }
-
-} // namespace detail
 
 } // namespace compyled::parser

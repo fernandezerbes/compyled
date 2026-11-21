@@ -5,17 +5,6 @@
 
 namespace compyled::parser {
 
-class RecursiveDescentParser {
-  lexer::Tokenizer &Tokenizer_;
-
-public:
-  RecursiveDescentParser(lexer::Tokenizer &Tokenizer);
-
-  std::unique_ptr<ast::ASTNode> BuildAST();
-};
-
-namespace detail {
-
 bool isDelimiter(const lexer::Token &Token, const lexer::DelimiterType ExpectedType);
 bool isOperator(const lexer::Token &Token, const lexer::OperatorType ExpectedType);
 bool isKeyword(const lexer::Token &Token, const lexer::KeywordType ExpectedType);
@@ -60,7 +49,5 @@ std::unique_ptr<ast::ASTNode> parsePrimary(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseGroup(lexer::Tokenizer &Tokenizer);
 std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Tokenizer);
-
-} // namespace detail
 
 } // namespace compyled::parser

@@ -533,7 +533,7 @@ std::unique_ptr<ast::ASTNode> parseConjunction(lexer::Tokenizer &Tokenizer) {
 
 std::unique_ptr<ast::ASTNode> parseInversion(lexer::Tokenizer &Tokenizer) {
   auto NotToken = Tokenizer.peekNextToken();
-  if (isKeyword(NotToken, lexer::KeywordType::Not)) {
+  if (isOperator(NotToken, lexer::OperatorType::LogicalNot)) {
     Tokenizer.consumeNextToken();
     auto Rhs = parseInversion(Tokenizer);
     return std::make_unique<ast::UnaryOp>(std::move(Rhs), getOperator(NotToken));
@@ -580,7 +580,7 @@ std::unique_ptr<ast::ASTNode> parseBitwiseXor(lexer::Tokenizer &Tokenizer) {
   auto Lhs = parseBitwiseAnd(Tokenizer);
 
   auto Token = Tokenizer.peekNextToken();
-  while (isOperator(Token, lexer::OperatorType::BitwiseAnd)) {
+  while (isOperator(Token, lexer::OperatorType::BitwiseXor)) {
     Tokenizer.consumeNextToken();
     auto Rhs = parseBitwiseAnd(Tokenizer);
     Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),

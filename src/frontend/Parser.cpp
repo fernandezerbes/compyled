@@ -725,7 +725,7 @@ std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
   case compyled::lexer::TokenType::Delimiter:
     return parseGroup(Tokenizer);
   default:
-    throw error::CompyledException("Unexpected an identifier, literal, or '(' token.",
+    throw error::CompyledException("Expected an identifier, literal, or '(' token.",
                                    Token.Location);
   }
 

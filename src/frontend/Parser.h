@@ -8,7 +8,7 @@ namespace compyled::parser {
 bool isDelimiter(const lexer::Token &Token, const lexer::DelimiterType ExpectedType);
 bool isOperator(const lexer::Token &Token, const lexer::OperatorType ExpectedType);
 bool isKeyword(const lexer::Token &Token, const lexer::KeywordType ExpectedType);
-bool isAugassign(const std::expected<lexer::Token, std::string> &Token);
+bool isAugassign(const lexer::Token &Token);
 
 std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer);
 std::vector<std::unique_ptr<ast::ASTNode>> parseStatement(lexer::Tokenizer &Tokenizer);
@@ -46,6 +46,7 @@ std::unique_ptr<ast::ASTNode> parseTerm(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseFactor(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parsePower(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parsePrimary(lexer::Tokenizer &Tokenizer);
+std::unique_ptr<ast::ASTNode> parseIdentifier(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer);
 std::unique_ptr<ast::ASTNode> parseGroup(lexer::Tokenizer &Tokenizer);
 std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Tokenizer);

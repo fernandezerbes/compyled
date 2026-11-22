@@ -1,9 +1,9 @@
 #include "Tokenizer.h"
+#include "Error.h"
 #include <cassert>
 #include <cctype>
 #include <charconv>
 #include <cstddef>
-#include <expected>
 #include <format>
 #include <iterator>
 #include <limits>
@@ -79,11 +79,13 @@ Tokenizer::Tokenizer(std::string &&Source, const std::size_t IndentSize)
 Tokenizer::Tokenizer(std::string &&Source)
     : compyled::lexer::Tokenizer(std::move(Source), DEFAULT_INDENT_SIZE) {}
 
-std::expected<Token, std::string> Tokenizer::getNextToken() {
+Token Tokenizer::peekNextToken() const noexcept { return NextToken_; }
+
+Token Tokenizer::consumeNextToken() {
   if (CurrPos_ == Source_.size()) {
-    return Token{.Type = TokenType::Eof, .Location = CurrLocation_};
+    return updateNextToken({.Type = TokenType::Eof, .Location = CurrLocation_});
   } else if (CurrPos_ > Source_.size()) {
-    return std::unexpected("Cannot read past the end of source");
+    throw error::CompyledException("Cannot read past the end of source", CurrLocation_);
   }
 
   const auto StartLocation = CurrLocation_;
@@ -95,19 +97,19 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
 
   auto WhitespaceCount = CurrPos_ - StartPos;
   if (WhitespaceCount == 1) {
-    return Token{.Type = TokenType::Whitespace, .Location = StartLocation};
+    return updateNextToken({.Type = TokenType::Whitespace, .Location = StartLocation});
   } else if (WhitespaceCount == IndentSize_) {
-    return Token{.Type = TokenType::Indent, .Location = StartLocation};
+    return updateNextToken({.Type = TokenType::Indent, .Location = StartLocation});
   } else if (WhitespaceCount > 0 && WhitespaceCount < IndentSize_) {
-    return std::unexpected(std::format("Unexpected number of whitespaces '{}' at line {}:{}",
-                                       WhitespaceCount, CurrLocation_.Line, CurrLocation_.Column));
+    throw error::CompyledException(
+        std::format("Unexpected number of whitespaces '{}'", WhitespaceCount), CurrLocation_);
   }
 
   if (Source_[CurrPos_] == '\n') {
     CurrPos_++;
     CurrLocation_.Line++;
     CurrLocation_.Column = 0;
-    return Token{.Type = TokenType::NewLine, .Location = StartLocation};
+    return updateNextToken({.Type = TokenType::NewLine, .Location = StartLocation});
   }
 
   const auto RemainingSource = std::string_view{Source_.cbegin() + CurrPos_, Source_.cend()};
@@ -117,13 +119,13 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
     CurrPos_ += OperatorOrDelimiterType->second;
     CurrLocation_.Column += OperatorOrDelimiterType->second;
     if (std::holds_alternative<OperatorType>(OperatorOrDelimiterType->first)) {
-      return Token{.Type = TokenType::Operator,
-                   .Location = StartLocation,
-                   .Value = std::get<OperatorType>(OperatorOrDelimiterType->first)};
+      return updateNextToken({.Type = TokenType::Operator,
+                              .Location = StartLocation,
+                              .Value = std::get<OperatorType>(OperatorOrDelimiterType->first)});
     }
-    return Token{.Type = TokenType::Delimiter,
-                 .Location = StartLocation,
-                 .Value = std::get<DelimiterType>(OperatorOrDelimiterType->first)};
+    return updateNextToken({.Type = TokenType::Delimiter,
+                            .Location = StartLocation,
+                            .Value = std::get<DelimiterType>(OperatorOrDelimiterType->first)});
   }
 
   const auto Name = detail::getName(RemainingSource);
@@ -134,37 +136,40 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
     if (it != STRING_TO_KEYWORD.cend()) {
       switch (it->second) {
       case KeywordType::And:
-        return Token{.Type = TokenType::Operator,
-                     .Location = StartLocation,
-                     .Value = OperatorType::LogicalAnd};
+        return updateNextToken({.Type = TokenType::Operator,
+                                .Location = StartLocation,
+                                .Value = OperatorType::LogicalAnd});
       case KeywordType::Or:
-        return Token{.Type = TokenType::Operator,
-                     .Location = StartLocation,
-                     .Value = OperatorType::LogicalOr};
+        return updateNextToken({.Type = TokenType::Operator,
+                                .Location = StartLocation,
+                                .Value = OperatorType::LogicalOr});
       case KeywordType::Not:
-        return Token{.Type = TokenType::Operator,
-                     .Location = StartLocation,
-                     .Value = OperatorType::LogicalNot};
+        return updateNextToken({.Type = TokenType::Operator,
+                                .Location = StartLocation,
+                                .Value = OperatorType::LogicalNot});
       case KeywordType::True:
-        return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = true};
+        return updateNextToken(
+            {.Type = TokenType::Value, .Location = StartLocation, .Value = true});
       case KeywordType::False:
-        return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = false};
+        return updateNextToken(
+            {.Type = TokenType::Value, .Location = StartLocation, .Value = false});
       case KeywordType::Int:
-        return Token{
-            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Integer};
+        return updateNextToken(
+            {.Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Integer});
       case KeywordType::Float:
-        return Token{
-            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Float};
+        return updateNextToken(
+            {.Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Float});
       case KeywordType::Bool:
-        return Token{
-            .Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Boolean};
+        return updateNextToken(
+            {.Type = TokenType::BaseType, .Location = StartLocation, .Value = BaseType::Boolean});
       default:
         // No other keywords are operators or booleans and don't need special treatment.
       }
-      return Token{.Type = TokenType::Keyword, .Location = StartLocation, .Value = it->second};
+      return updateNextToken(
+          {.Type = TokenType::Keyword, .Location = StartLocation, .Value = it->second});
     } else {
-      return Token{
-          .Type = TokenType::Identifier, .Location = StartLocation, .Value = std::move(*Name)};
+      return updateNextToken(
+          {.Type = TokenType::Identifier, .Location = StartLocation, .Value = std::move(*Name)});
     }
   }
 
@@ -172,25 +177,32 @@ std::expected<Token, std::string> Tokenizer::getNextToken() {
   if (FloatLiteral) {
     CurrPos_ += FloatLiteral->second;
     CurrLocation_.Column += FloatLiteral->second;
-    return Token{.Type = TokenType::Value, .Location = StartLocation, .Value = FloatLiteral->first};
+    return updateNextToken(
+        {.Type = TokenType::Value, .Location = StartLocation, .Value = FloatLiteral->first});
   }
 
   const auto IntegerLiteral = detail::getIntegerLiteral(RemainingSource);
   if (IntegerLiteral) {
     CurrPos_ += IntegerLiteral->second;
     CurrLocation_.Column += IntegerLiteral->second;
-    if (IntegerLiteral->first > std::numeric_limits<IntegerType>::max()) {
-      return std::unexpected(
-          std::format("Integer '{}' at line {}:{} exceeds the maximum 64-bit integer of {}",
-                      IntegerLiteral->first, CurrLocation_.Line, CurrLocation_.Column,
-                      std::numeric_limits<IntegerType>::max()));
+    if (IntegerLiteral->first > std::numeric_limits<types::IntegerType>::max()) {
+      throw error::CompyledException(
+          std::format("Integer '{}' exceeds the maximum 64-bit integer of {}",
+                      IntegerLiteral->first, std::numeric_limits<types::IntegerType>::max()),
+          CurrLocation_);
     }
-    return Token{
-        .Type = TokenType::Value, .Location = StartLocation, .Value = IntegerLiteral->first};
+    return updateNextToken(
+        {.Type = TokenType::Value, .Location = StartLocation, .Value = IntegerLiteral->first});
   }
 
-  return std::unexpected(std::format("Unexpected character '{}' at line {}:{}", Source_[CurrPos_],
-                                     CurrLocation_.Line, CurrLocation_.Column));
+  throw error::CompyledException(std::format("Unexpected character '{}'", Source_[CurrPos_]),
+                                 CurrLocation_);
+}
+
+Token Tokenizer::updateNextToken(Token &&NewToken) noexcept {
+  const auto PrevToken = NextToken_;
+  NextToken_ = std::move(NewToken);
+  return PrevToken;
 }
 
 namespace detail {
@@ -252,13 +264,13 @@ std::optional<std::pair<std::string, std::size_t>> matchExponent(const std::stri
 
 // TODO: Implement actual integer parsing as per
 // https://docs.python.org/3/reference/lexical_analysis.html#integer-literals
-std::optional<std::pair<IntegerType, std::size_t>>
+std::optional<std::pair<types::IntegerType, std::size_t>>
 getIntegerLiteral(const std::string_view Source) {
   if (Source.empty()) {
     return std::nullopt;
   }
 
-  auto IntValue = IntegerType{};
+  auto IntValue = types::IntegerType{};
   const auto [ptr, ec] = std::from_chars(Source.cbegin(), Source.cend(), IntValue);
   if (ec == std::errc{}) {
     return std::pair{IntValue, std::distance(Source.cbegin(), ptr)};
@@ -276,7 +288,8 @@ getIntegerLiteral(const std::string_view Source) {
  * digitpart: digit (["_"] digit)*
  * exponent:  ("e" | "E") ["+" | "-"] digitpart
  */
-std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::string_view Source) {
+std::optional<std::pair<types::FloatType, std::size_t>>
+getFloatLiteral(const std::string_view Source) {
   if (Source.empty()) {
     return std::nullopt;
   }
@@ -346,7 +359,7 @@ std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::stri
     return std::nullopt;
   }
 
-  auto FloatValue = FloatType{};
+  auto FloatValue = types::FloatType{};
   const auto [ptr, ec] =
       std::from_chars(FloatStr.data(), FloatStr.data() + FloatStr.size(), FloatValue);
   if (ec == std::errc{}) {

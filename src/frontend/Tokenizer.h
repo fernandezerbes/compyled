@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cmath>
+#include "Types.h"
+
 #include <cstddef>
-#include <cstdint>
-#include <expected>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -11,11 +10,6 @@
 
 // Based on https://docs.python.org/3/reference/lexical_analysis.html
 namespace compyled::lexer {
-
-struct SourceLocation {
-  std::size_t Line;
-  std::size_t Column;
-};
 
 enum class BaseType {
   Integer,
@@ -133,16 +127,13 @@ enum class KeywordType {
   Range,
 };
 
-using IntegerType = std::int64_t;
-using FloatType = std::double_t;
-using BooleanType = bool;
-
 struct Token {
-  using ValueType = std::variant<std::string, IntegerType, FloatType, BooleanType, OperatorType,
-                                 KeywordType, DelimiterType, BaseType>;
+  using ValueType =
+      std::variant<std::string, types::IntegerType, types::FloatType, types::BooleanType,
+                   OperatorType, KeywordType, DelimiterType, BaseType>;
 
   TokenType Type;
-  SourceLocation Location;
+  types::SourceLocation Location;
   ValueType Value;
 };
 
@@ -151,20 +142,26 @@ public:
   Tokenizer(std::string &&Source);
   Tokenizer(std::string &&Source, const std::size_t IndentSize);
 
-  std::expected<Token, std::string> getNextToken();
+  Token peekNextToken() const noexcept;
+  [[maybe_unused]] Token consumeNextToken();
 
 private:
   std::string Source_;
   std::size_t CurrPos_;
   std::size_t IndentSize_{};
-  SourceLocation CurrLocation_{};
+  types::SourceLocation CurrLocation_{};
+  Token NextToken_;
+
+  Token updateNextToken(Token &&NewToken) noexcept;
 };
 
 namespace detail {
 
-std::optional<std::pair<IntegerType, std::size_t>> getIntegerLiteral(const std::string_view Source);
+std::optional<std::pair<types::IntegerType, std::size_t>>
+getIntegerLiteral(const std::string_view Source);
 
-std::optional<std::pair<FloatType, std::size_t>> getFloatLiteral(const std::string_view Source);
+std::optional<std::pair<types::FloatType, std::size_t>>
+getFloatLiteral(const std::string_view Source);
 
 std::optional<std::pair<std::variant<OperatorType, DelimiterType>, std::size_t>>
 getOperatorOrDelimiterType(const std::string_view Source);

@@ -70,10 +70,15 @@ constexpr std::size_t DEFAULT_INDENT_SIZE = 4;
 } // namespace
 
 Tokenizer::Tokenizer(std::string &&Source, const std::size_t IndentSize)
-    : Source_(std::move(Source)), CurrPos_{}, IndentSize_{IndentSize}, NextToken_(peekNextToken()) {
+    : Source_(std::move(Source)), IndentSize_{IndentSize} {
   if (IndentSize % 2 != 0) {
     throw std::invalid_argument(std::format("Indent size {} is not a multiple of 2", IndentSize));
   }
+  NextToken_ = consumeNextToken();
+  // Initialization of NextToken_ with consumeNextToken increments the position.
+  // Bring it back to 0.
+  CurrPos_ = 0;
+  CurrLocation_ = {};
 }
 
 Tokenizer::Tokenizer(std::string &&Source)

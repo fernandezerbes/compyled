@@ -145,12 +145,12 @@ class Tokenizer {
   // Keeps the value of the next token at all times.
   // Updated every time `consumeNextToken` is called.
   Token NextToken_;
-  
-  // Update the NextToken_ with the NewToken value, and return the NewToken.
+
+  // Return NextToken_ and then update NextToken with the NewToken value.
   Token updateNextToken(Token &&NewToken) noexcept;
 
 public:
-  // Constructors throw if the Source have no valid tokens. 
+  // Constructors throw if the Source have no valid tokens.
   explicit Tokenizer(std::string &&Source);
   Tokenizer(std::string &&Source, const std::size_t IndentSize);
 

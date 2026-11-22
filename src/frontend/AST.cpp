@@ -1,5 +1,6 @@
 #include "AST.h"
-#include "frontend/Tokenizer.h"
+#include "Tokenizer.h"
+#include "Types.h"
 
 namespace compyled::ast {
 
@@ -74,8 +75,8 @@ Program::Program(std::vector<std::unique_ptr<ASTNode>> &&Statements)
     : Statements_(std::move(Statements)) {}
 
 // Explicit instantiations
-template class Value<lexer::IntegerType>;
-template class Value<lexer::FloatType>;
-template class Value<lexer::BooleanType>;
+template class Value<types::IntegerType>;
+template class Value<types::FloatType>;
+template class Value<types::BooleanType>;
 
 } // namespace compyled::ast

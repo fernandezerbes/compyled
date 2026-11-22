@@ -1,6 +1,6 @@
 #pragma once
 
-#include "frontend/Tokenizer.h"
+#include "Tokenizer.h"
 #include <memory>
 #include <string>
 #include <vector>

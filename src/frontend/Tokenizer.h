@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <stack>
 #include <string>
 #include <string_view>
 #include <variant>
@@ -130,7 +131,7 @@ enum class KeywordType {
 struct Token {
   using ValueType =
       std::variant<std::string, types::IntegerType, types::FloatType, types::BooleanType,
-                   OperatorType, KeywordType, DelimiterType, BaseType>;
+                   OperatorType, KeywordType, DelimiterType, BaseType, std::size_t>;
 
   TokenType Type;
   types::SourceLocation Location;
@@ -140,7 +141,7 @@ struct Token {
 class Tokenizer {
   std::string Source_{};
   std::size_t CurrPos_{};
-  std::size_t IndentSize_{};
+  std::stack<std::size_t> IndentStack_{};
   types::SourceLocation CurrLocation_{};
   // Keeps the value of the next token at all times.
   // Updated every time `consumeNextToken` is called.
@@ -152,7 +153,6 @@ class Tokenizer {
 public:
   // Constructors throw if the Source have no valid tokens.
   explicit Tokenizer(std::string &&Source);
-  Tokenizer(std::string &&Source, const std::size_t IndentSize);
 
   // Get the value of the next token without advancing the current position.
   Token peekNextToken() const noexcept;

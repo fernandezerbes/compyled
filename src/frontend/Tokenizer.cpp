@@ -65,46 +65,50 @@ static const std::unordered_map<std::string_view, KeywordType> STRING_TO_KEYWORD
     {"range", KeywordType::Range},
 };
 
-constexpr std::size_t DEFAULT_INDENT_SIZE = 4;
-
 } // namespace
 
-Tokenizer::Tokenizer(std::string &&Source, const std::size_t IndentSize)
-    : Source_(std::move(Source)), IndentSize_{IndentSize} {
-  if (IndentSize == 0) {
-    throw std::invalid_argument("Indent size must be greater than 0.");
-  }
-  if (IndentSize % 2 != 0) {
-    throw std::invalid_argument(std::format("Indent size {} is not a multiple of 2.", IndentSize));
-  }
+Tokenizer::Tokenizer(std::string &&Source) : Source_(std::move(Source)), IndentStack_{{0}} {
   consumeNextToken();
 }
-
-Tokenizer::Tokenizer(std::string &&Source)
-    : compyled::lexer::Tokenizer(std::move(Source), DEFAULT_INDENT_SIZE) {}
 
 Token Tokenizer::peekNextToken() const noexcept { return NextToken_; }
 
 Token Tokenizer::consumeNextToken() {
+  const auto PrevToken = NextToken_;
+  const auto StartLocation = CurrLocation_;
   if (CurrPos_ == Source_.size()) {
-    return updateNextToken({.Type = TokenType::Eof, .Location = CurrLocation_});
+    if (!IndentStack_.empty() && IndentStack_.top() > 0) {
+      const auto DedentSize = IndentStack_.top();
+      IndentStack_.pop();
+      return updateNextToken(
+          {.Type = TokenType::Dedent, .Location = StartLocation, .Value = DedentSize});
+    } else {
+      return updateNextToken({.Type = TokenType::Eof, .Location = CurrLocation_});
+    }
   } else if (CurrPos_ > Source_.size()) {
     throw error::CompyledException("Cannot read past the end of source", CurrLocation_);
   }
 
-  const auto StartLocation = CurrLocation_;
   const auto StartPos = CurrPos_;
-  while (Source_[CurrPos_] == ' ' && (CurrPos_ - StartPos) < IndentSize_) {
+  while (Source_[CurrPos_] == ' ') {
     CurrPos_++;
     CurrLocation_.Column++;
   }
 
+  const auto CurrIndentSize = IndentStack_.top();
   auto WhitespaceCount = CurrPos_ - StartPos;
-  if (WhitespaceCount == IndentSize_) {
-    return updateNextToken({.Type = TokenType::Indent, .Location = StartLocation});
-  } else if (WhitespaceCount > 1 && WhitespaceCount < IndentSize_) {
-    throw error::CompyledException(
-        std::format("Unexpected number of whitespaces '{}'", WhitespaceCount), CurrLocation_);
+  if (PrevToken.Type == TokenType::NewLine) {
+    if (WhitespaceCount > CurrIndentSize) {
+      IndentStack_.push(WhitespaceCount);
+      return updateNextToken(
+          {.Type = TokenType::Indent, .Location = StartLocation, .Value = WhitespaceCount});
+    } else if (WhitespaceCount < CurrIndentSize) {
+      IndentStack_.pop();
+      return updateNextToken(
+          {.Type = TokenType::Dedent, .Location = StartLocation, .Value = CurrIndentSize});
+    }
+    // WhitespaceCount == CurrIndentSize, the indentation is the same as the previous one, just
+    // ignore the whitespaces.
   }
 
   if (Source_[CurrPos_] == '\n') {

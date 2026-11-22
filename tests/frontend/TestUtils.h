@@ -30,8 +30,8 @@ Expected Int(types::IntegerType V);
 Expected Flt(types::FloatType V);
 Expected Bool(types::BooleanType V);
 Expected NL();
-Expected Indent();
-Expected Dedent();
+Expected Indent(std::size_t S = 0uz); // TODO: Remove default
+Expected Dedent(std::size_t S = 0uz); // TODO: Remove default
 Expected Eof();
 
 // True if `Actual` has the type and value of `Want`.
@@ -44,6 +44,6 @@ std::string toString(const lexer::Token &T);
 
 // Consumes every token of `Source`, including the final Eof token.
 // Exceptions thrown by the tokenizer propagate to the caller.
-std::vector<lexer::Token> tokenize(std::string Source, std::size_t IndentSize = 4);
+std::vector<lexer::Token> tokenize(std::string Source);
 
 } // namespace compyled::test

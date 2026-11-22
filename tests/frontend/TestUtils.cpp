@@ -1,5 +1,6 @@
 #include "TestUtils.h"
 
+#include <cstddef>
 #include <stdexcept>
 #include <utility>
 #include <variant>
@@ -17,8 +18,8 @@ Expected Int(types::IntegerType V) { return {TokenType::Value, V}; }
 Expected Flt(types::FloatType V) { return {TokenType::Value, V}; }
 Expected Bool(types::BooleanType V) { return {TokenType::Value, V}; }
 Expected NL() { return {TokenType::NewLine}; }
-Expected Indent() { return {TokenType::Indent}; }
-Expected Dedent() { return {TokenType::Dedent}; }
+Expected Indent(std::size_t S) { return {TokenType::Indent, S}; }
+Expected Dedent(std::size_t S) { return {TokenType::Dedent, S}; }
 Expected Eof() { return {TokenType::Eof}; }
 
 bool matches(const Token &Actual, const Expected &Want) {
@@ -59,6 +60,7 @@ std::string toString(const Token::ValueType &Value) {
     std::string operator()(types::IntegerType V) const { return "int " + std::to_string(V); }
     std::string operator()(types::FloatType V) const { return "float " + std::to_string(V); }
     std::string operator()(types::BooleanType V) const { return V ? "True" : "False"; }
+    std::string operator()(std::size_t V) const { return "size " + std::to_string(V); }
     std::string operator()(OperatorType V) const {
       return "OperatorType " + std::to_string(static_cast<int>(V));
     }
@@ -82,8 +84,8 @@ std::string toString(const Token &T) {
          ":" + std::to_string(T.Location.Column);
 }
 
-std::vector<Token> tokenize(std::string Source, std::size_t IndentSize) {
-  Tokenizer T(std::move(Source), IndentSize);
+std::vector<Token> tokenize(std::string Source) {
+  Tokenizer T(std::move(Source));
   std::vector<Token> Tokens;
   while (Tokens.size() < MAX_TOKENS) {
     Tokens.push_back(T.consumeNextToken());

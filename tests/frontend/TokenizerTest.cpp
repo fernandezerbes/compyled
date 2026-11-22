@@ -26,12 +26,11 @@ namespace {
 // -------------------------------------------------------------------------------------------------
 
 // Asserts that `Source` tokenizes into exactly `Want`, which must include the final Eof.
-void expectTokens(const std::string &Source, const std::vector<Expected> &Want,
-                  std::size_t IndentSize = 4) {
+void expectTokens(const std::string &Source, const std::vector<Expected> &Want) {
   SCOPED_TRACE("source: \"" + Source + "\"");
   std::vector<Token> Got;
   try {
-    Got = tokenize(Source, IndentSize);
+    Got = tokenize(Source);
   } catch (const std::exception &E) {
     FAIL() << "tokenizer threw: " << E.what();
   }
@@ -50,9 +49,9 @@ void expectTokens(const std::string &Source, const std::vector<Expected> &Want,
 }
 
 // Asserts that tokenizing `Source` fails with a compiler error.
-void expectError(const std::string &Source, std::size_t IndentSize = 4) {
+void expectError(const std::string &Source) {
   SCOPED_TRACE("source: \"" + Source + "\"");
-  EXPECT_THROW(tokenize(Source, IndentSize), error::CompyledException);
+  EXPECT_THROW(tokenize(Source), error::CompyledException);
 }
 
 // Tokenizes `Source` and returns every token except Eof, failing the test if the tokenizer throws.
@@ -77,21 +76,6 @@ void expectLocation(const Token &T, std::size_t Line, std::size_t Column) {
 // -------------------------------------------------------------------------------------------------
 // Construction
 // -------------------------------------------------------------------------------------------------
-
-TEST(TokenizerConstruction, AcceptsDefaultIndentSize) { EXPECT_NO_THROW(Tokenizer{"x"}); }
-
-TEST(TokenizerConstruction, AcceptsEvenIndentSizes) {
-  EXPECT_NO_THROW((Tokenizer{"x", 2}));
-  EXPECT_NO_THROW((Tokenizer{"x", 4}));
-  EXPECT_NO_THROW((Tokenizer{"x", 8}));
-}
-
-TEST(TokenizerConstruction, RejectsOddIndentSizes) {
-  EXPECT_THROW((Tokenizer{"x", 1}), std::invalid_argument);
-  EXPECT_THROW((Tokenizer{"x", 3}), std::invalid_argument);
-  EXPECT_THROW((Tokenizer{"x", 5}), std::invalid_argument);
-  EXPECT_THROW((Tokenizer{"x", 7}), std::invalid_argument);
-}
 
 TEST(TokenizerConstruction, AcceptsEmptySource) { EXPECT_NO_THROW(Tokenizer{""}); }
 
@@ -750,26 +734,26 @@ TEST(TokenizerNewLines, SemicolonsDoNotEndTheLogicalLine) {
 
 TEST(TokenizerIndentation, IndentedBlock) {
   expectTokens("if a:\n    b\n", {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(),
-                                  Indent(), Id("b"), NL(), Dedent(), Eof()});
+                                  Indent(4), Id("b"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, IndentIsEmittedOnlyWhenIndentationIncreases) {
   expectTokens("if a:\n    b\n    c\n    d\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("c"), NL(), Id("d"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("c"), NL(), Id("d"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, DedentWhenReturningToPreviousLevel) {
   expectTokens("if a:\n    b\nc\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Dedent(), Id("c"), NL(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Dedent(4), Id("c"), NL(), Eof()});
 }
 
 TEST(TokenizerIndentation, NestedBlocks) {
   expectTokens("if a:\n    if b:\n        c\n    d\ne\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(),
-                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(), Id("c"),
-                NL(), Dedent(), Id("d"), NL(), Dedent(), Id("e"), NL(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4),
+                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(8), Id("c"),
+                NL(), Dedent(8), Id("d"), NL(), Dedent(4), Id("e"), NL(), Eof()});
 }
 
 TEST(TokenizerIndentation, OneDedentPerClosedLevel) {
@@ -777,22 +761,22 @@ TEST(TokenizerIndentation, OneDedentPerClosedLevel) {
                                                                        Id("a"),
                                                                        Delim(DelimiterType::Colon),
                                                                        NL(),
-                                                                       Indent(),
+                                                                       Indent(4),
                                                                        Kw(KeywordType::If),
                                                                        Id("b"),
                                                                        Delim(DelimiterType::Colon),
                                                                        NL(),
-                                                                       Indent(),
+                                                                       Indent(8),
                                                                        Kw(KeywordType::If),
                                                                        Id("c"),
                                                                        Delim(DelimiterType::Colon),
                                                                        NL(),
-                                                                       Indent(),
+                                                                       Indent(12),
                                                                        Id("d"),
                                                                        NL(),
-                                                                       Dedent(),
-                                                                       Dedent(),
-                                                                       Dedent(),
+                                                                       Dedent(12),
+                                                                       Dedent(8),
+                                                                       Dedent(4),
                                                                        Id("e"),
                                                                        NL(),
                                                                        Eof()});
@@ -871,35 +855,7 @@ TEST(TokenizerIndentation, SpacesAfterFirstTokenAreNotIndentation) {
 }
 
 TEST(TokenizerIndentation, IndentedFirstLine) {
-  expectTokens("    x\n", {Indent(), Id("x"), NL(), Dedent(), Eof()});
-}
-
-TEST(TokenizerIndentation, CustomIndentSizeTwo) {
-  expectTokens("if a:\n  if b:\n    c\nd\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(),
-                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(), Id("c"),
-                NL(), Dedent(), Dedent(), Id("d"), NL(), Eof()},
-               2);
-}
-
-TEST(TokenizerIndentation, CustomIndentSizeEight) {
-  expectTokens("if a:\n        b\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Dedent(), Eof()},
-               8);
-}
-
-TEST(TokenizerIndentation, IndentationNotMultipleOfIndentSizeIsAnError) {
-  expectError("if a:\n  b\n");
-  expectError("if a:\n   b\n");
-  expectError("if a:\n     b\n");
-  expectError("if a:\n    b\n", 8);
-  expectError("if a:\n   b\n", 2);
-}
-
-TEST(TokenizerIndentation, DedentToNonMultipleOfIndentSizeIsAnError) {
-  expectError("if a:\n    if b:\n        c\n  d\n");
-  expectError("if a:\n    b\n  c\n");
+  expectTokens("    x\n", {Indent(4), Id("x"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, IndentingMoreThanOneLevelAtOnceIsAnError) {

@@ -4,9 +4,9 @@
 // parses a source string and compares the resulting AST against an S-expression rendering of the
 // tree the grammar mandates (see "AST rendering" below for the format).
 
+#include "frontend/Parser.h"
 #include "frontend/AST.h"
 #include "frontend/Error.h"
-#include "frontend/Parser.h"
 #include "frontend/Tokenizer.h"
 #include "frontend/Types.h"
 
@@ -46,7 +46,7 @@ template <typename Tag, typename Tag::Type Member> struct PrivateField {
   friend typename Tag::Type memberPtr(Tag) { return Member; }
 };
 
-#define AST_FIELD(TagName, Class, FieldType, Field)                                               \
+#define AST_FIELD(TagName, Class, FieldType, Field)                                                \
   struct TagName {                                                                                 \
     using Type = FieldType Class::*;                                                               \
     friend Type memberPtr(TagName);                                                                \
@@ -129,12 +129,10 @@ template <typename Tag, typename Node> const auto &field(const Node &N) {
 //   ContinueStmt          continue
 //   GlobalStmt            (global Name...)
 //   Block                 (block Stmt...)
-//   IfStmt                (if Cond Block Else)     (Else is a Block, a nested IfStmt for elif, or _)
-//   WhileStmt             (while Cond Block Else)
-//   ForStmt               (for Start Stop Step Block Else)
-//   Parameter             (param Name Type Default)
-//   FunctionDeclaration   (def Name [Param...] ReturnType Block)
-//   Program               (program Stmt...)
+//   IfStmt                (if Cond Block Else)     (Else is a Block, a nested IfStmt for elif, or
+//   _) WhileStmt             (while Cond Block Else) ForStmt               (for Start Stop Step
+//   Block Else) Parameter             (param Name Type Default) FunctionDeclaration   (def Name
+//   [Param...] ReturnType Block) Program               (program Stmt...)
 //
 // A missing (null) child is rendered as `_`. A list of nodes is rendered as `[a b c]`.
 
@@ -335,9 +333,9 @@ std::string dump(const ast::ASTNode *N) {
                            dump(field<WhileElseBlock>(*V))});
   }
   if (const auto *V = dynamic_cast<const ast::ForStmt *>(N)) {
-    return sexpr("for", {dump(field<ForStart>(*V)), dump(field<ForStop>(*V)),
-                         dump(field<ForStep>(*V)), dump(field<ForBlock>(*V)),
-                         dump(field<ForElseBlock>(*V))});
+    return sexpr("for",
+                 {dump(field<ForStart>(*V)), dump(field<ForStop>(*V)), dump(field<ForStep>(*V)),
+                  dump(field<ForBlock>(*V)), dump(field<ForElseBlock>(*V))});
   }
   if (const auto *V = dynamic_cast<const ast::Parameter *>(N)) {
     return sexpr("param", {dump(field<ParameterName>(*V)), dump(field<ParameterType>(*V)),
@@ -423,7 +421,9 @@ void expectStmt(const std::string &Source, const std::string &Want) { expectFile
 void expectFileError(const std::string &Source) { expectParseError(NodeRule{parseFile}, Source); }
 
 // Returns the first token of `Source`.
-Token firstToken(const std::string &Source) { return Tokenizer{std::string(Source)}.peekNextToken(); }
+Token firstToken(const std::string &Source) {
+  return Tokenizer{std::string(Source)}.peekNextToken();
+}
 
 } // namespace
 
@@ -617,14 +617,26 @@ struct BinaryOperatorCase {
 };
 
 const BinaryOperatorCase AllBinaryOperators[] = {
-    {"or", "Or"},         {"and", "And"},        {"==", "Equal"},
-    {"!=", "NotEqual"},   {"<=", "LessOrEqual"}, {"<", "Less"},
+    {"or", "Or"},
+    {"and", "And"},
+    {"==", "Equal"},
+    {"!=", "NotEqual"},
+    {"<=", "LessOrEqual"},
+    {"<", "Less"},
     {">=", "GreaterOrEqual"},
-    {">", "Greater"},     {"|", "BitwiseOr"},    {"^", "BitwiseXor"},
-    {"&", "BitwiseAnd"},  {"<<", "LeftShift"},   {">>", "RightShift"},
-    {"+", "Add"},         {"-", "Subtract"},     {"*", "Multiply"},
-    {"/", "FloatDivide"}, {"//", "IntegerDivide"},
-    {"%", "Modulo"},      {"**", "Exponentiate"},
+    {">", "Greater"},
+    {"|", "BitwiseOr"},
+    {"^", "BitwiseXor"},
+    {"&", "BitwiseAnd"},
+    {"<<", "LeftShift"},
+    {">>", "RightShift"},
+    {"+", "Add"},
+    {"-", "Subtract"},
+    {"*", "Multiply"},
+    {"/", "FloatDivide"},
+    {"//", "IntegerDivide"},
+    {"%", "Modulo"},
+    {"**", "Exponentiate"},
 };
 
 class ParserBinaryOperatorTest : public ::testing::TestWithParam<BinaryOperatorCase> {};
@@ -654,21 +666,17 @@ TEST_P(ParserBinaryOperatorTest, MissingLeftOperandIsAnError) {
   expectExprError(Op + " b");
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    AllBinaryOperators, ParserBinaryOperatorTest, ::testing::ValuesIn(AllBinaryOperators),
-    [](const ::testing::TestParamInfo<BinaryOperatorCase> &Info) { return Info.param.Name; });
+INSTANTIATE_TEST_SUITE_P(AllBinaryOperators, ParserBinaryOperatorTest,
+                         ::testing::ValuesIn(AllBinaryOperators),
+                         [](const ::testing::TestParamInfo<BinaryOperatorCase> &Info) {
+                           return Info.param.Name;
+                         });
 
 // Precedence levels, from the loosest to the tightest binding, as given by the grammar.
 const std::vector<std::vector<std::string>> PrecedenceLevels = {
-    {"or"},
-    {"and"},
-    {"==", "!=", "<=", "<", ">=", ">"},
-    {"|"},
-    {"^"},
-    {"&"},
-    {"<<", ">>"},
-    {"+", "-"},
-    {"*", "/", "//", "%"},
+    {"or"},       {"and"},    {"==", "!=", "<=", "<", ">=", ">"},
+    {"|"},        {"^"},      {"&"},
+    {"<<", ">>"}, {"+", "-"}, {"*", "/", "//", "%"},
     {"**"},
 };
 
@@ -703,8 +711,7 @@ TEST(ParserPrecedence, OperatorsOfTheSameLevelAreLeftAssociative) {
         if (First == "**") {
           continue; // right-associative, tested below
         }
-        expectExpr("a " + First + " b " + Second + " c",
-                   "(" + Second + " (" + First + " a b) c)");
+        expectExpr("a " + First + " b " + Second + " c", "(" + Second + " (" + First + " a b) c)");
       }
     }
   }
@@ -902,8 +909,7 @@ TEST(ParserExpressionRules, Disjunction) {
 
 TEST(ParserExpressionRules, Conjunction) {
   expectParse(NodeRule{parseConjunction}, "a and b and c", "(and (and a b) c)", Eof());
-  expectParse(NodeRule{parseConjunction}, "a and b or c", "(and a b)",
-              Op(OperatorType::LogicalOr));
+  expectParse(NodeRule{parseConjunction}, "a and b or c", "(and a b)", Op(OperatorType::LogicalOr));
 }
 
 TEST(ParserExpressionRules, Inversion) {
@@ -1211,8 +1217,7 @@ INSTANTIATE_TEST_SUITE_P(
                       AugassignCase{"%=", "Modulo"}, AugassignCase{"&=", "BitwiseAnd"},
                       AugassignCase{"|=", "BitwiseOr"}, AugassignCase{"^=", "BitwiseXor"},
                       AugassignCase{"<<=", "LeftShift"}, AugassignCase{">>=", "RightShift"},
-                      AugassignCase{"**=", "Exponentiate"},
-                      AugassignCase{"//=", "IntegerDivide"}),
+                      AugassignCase{"**=", "Exponentiate"}, AugassignCase{"//=", "IntegerDivide"}),
     [](const ::testing::TestParamInfo<AugassignCase> &Info) { return Info.param.Name; });
 
 // Only a NAME is a valid target, but that is a semantic check done after parsing.
@@ -1401,9 +1406,7 @@ TEST(ParserSimpleStmts, RuleRejectsMalformedLines) {
 // if / elif / else
 // ----------------
 
-TEST(ParserIf, IndentedBlock) {
-  expectStmt("if x:\n    pass\n", "(if x (block pass) _)");
-}
+TEST(ParserIf, IndentedBlock) { expectStmt("if x:\n    pass\n", "(if x (block pass) _)"); }
 
 TEST(ParserIf, BlockWithSeveralStatements) {
   expectStmt("if x:\n    y = 1\n    z = 2\n", "(if x (block (assign [y] 1) (assign [z] 2)) _)");
@@ -1483,7 +1486,9 @@ TEST(ParserIf, ElseOrElifWithoutIfIsAnError) {
   expectFileError("pass\nelse: pass\n");
 }
 
-TEST(ParserIf, ElifAfterElseIsAnError) { expectFileError("if a: pass\nelse: pass\nelif b: pass\n"); }
+TEST(ParserIf, ElifAfterElseIsAnError) {
+  expectFileError("if a: pass\nelse: pass\nelif b: pass\n");
+}
 
 TEST(ParserIf, ElseWithConditionIsAnError) { expectFileError("if a: pass\nelse b: pass\n"); }
 
@@ -1511,7 +1516,9 @@ TEST(ParserWhile, IndentedBlock) {
   expectStmt("while x:\n    x -= 1\n", "(while x (block (augassign -= x 1)) _)");
 }
 
-TEST(ParserWhile, BlockOnTheSameLine) { expectStmt("while True: pass\n", "(while True (block pass) _)"); }
+TEST(ParserWhile, BlockOnTheSameLine) {
+  expectStmt("while True: pass\n", "(while True (block pass) _)");
+}
 
 TEST(ParserWhile, ConditionIsAnExpression) {
   expectStmt("while i < n and not done: i += 1\n",
@@ -1712,7 +1719,9 @@ TEST(ParserFunctionDef, ParameterAnnotationIsMandatory) {
   expectFileError("def f(a: int, b) -> None: pass\n");
 }
 
-TEST(ParserFunctionDef, NoneIsNotAParameterType) { expectFileError("def f(a: None) -> None: pass\n"); }
+TEST(ParserFunctionDef, NoneIsNotAParameterType) {
+  expectFileError("def f(a: None) -> None: pass\n");
+}
 
 TEST(ParserFunctionDef, MalformedParameterListsAreAnError) {
   expectFileError("def f(,) -> None: pass\n");
@@ -1849,14 +1858,14 @@ TEST(ParserFile, SemicolonsAndNewLinesMix) {
 
 TEST(ParserFile, DeeplyNestedBlocksCloseTogether) {
   expectFile("if a:\n    while b:\n        for i in range(c):\n            pass\nx = 1\n",
-             {"(if a (block (while b (block (for _ c _ (block pass) _)) _)) _)",
-              "(assign [x] 1)"});
+             {"(if a (block (while b (block (for _ c _ (block pass) _)) _)) _)", "(assign [x] 1)"});
 }
 
 TEST(ParserFile, SiblingCompoundStatements) {
   expectFile("if a:\n    pass\nif b:\n    pass\n",
              {"(if a (block pass) _)", "(if b (block pass) _)"});
-  expectFile("while a: pass\nwhile b: pass\n", {"(while a (block pass) _)", "(while b (block pass) _)"});
+  expectFile("while a: pass\nwhile b: pass\n",
+             {"(while a (block pass) _)", "(while b (block pass) _)"});
 }
 
 TEST(ParserFile, CompleteProgram) {

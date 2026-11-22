@@ -74,7 +74,7 @@ Tokenizer::Tokenizer(std::string &&Source, const std::size_t IndentSize)
   if (IndentSize % 2 != 0) {
     throw std::invalid_argument(std::format("Indent size {} is not a multiple of 2", IndentSize));
   }
-  NextToken_ = consumeNextToken();
+  consumeNextToken();
   // Initialization of NextToken_ with consumeNextToken increments the position.
   // Bring it back to 0.
   CurrPos_ = 0;

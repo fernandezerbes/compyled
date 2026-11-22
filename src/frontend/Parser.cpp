@@ -87,6 +87,7 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseSimpleStmts(lexer::Tokenizer &To
   Stmts.push_back(std::move(SimpleStmt));
   auto Token = Tokenizer.peekNextToken();
   if (Token.Type == lexer::TokenType::NewLine) {
+    Tokenizer.consumeNextToken();
     return Stmts;
   }
 

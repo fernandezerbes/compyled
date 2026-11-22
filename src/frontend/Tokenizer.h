@@ -138,21 +138,27 @@ struct Token {
 };
 
 class Tokenizer {
-public:
-  Tokenizer(std::string &&Source);
-  Tokenizer(std::string &&Source, const std::size_t IndentSize);
-
-  Token peekNextToken() const noexcept;
-  [[maybe_unused]] Token consumeNextToken();
-
-private:
-  std::string Source_;
-  std::size_t CurrPos_;
+  std::string Source_{};
+  std::size_t CurrPos_{};
   std::size_t IndentSize_{};
   types::SourceLocation CurrLocation_{};
+  // Keeps the value of the next token at all times.
+  // Updated every time `consumeNextToken` is called.
   Token NextToken_;
-
+  
+  // Update the NextToken_ with the NewToken value, and return the NewToken.
   Token updateNextToken(Token &&NewToken) noexcept;
+
+public:
+  // Constructors throw if the Source have no valid tokens. 
+  explicit Tokenizer(std::string &&Source);
+  Tokenizer(std::string &&Source, const std::size_t IndentSize);
+
+  // Get the value of the next token without advancing the current position.
+  Token peekNextToken() const noexcept;
+
+  // Return the value of the next token and then consume it.
+  [[maybe_unused]] Token consumeNextToken();
 };
 
 namespace detail {

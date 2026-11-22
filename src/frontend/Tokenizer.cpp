@@ -111,6 +111,10 @@ Token Tokenizer::consumeNextToken() {
     // ignore the whitespaces.
   }
 
+  if (CurrPos_ == Source_.size()) {
+    return updateNextToken({.Type = TokenType::Eof, .Location = CurrLocation_});
+  }
+
   if (Source_[CurrPos_] == '\n') {
     CurrPos_++;
     CurrLocation_.Line++;

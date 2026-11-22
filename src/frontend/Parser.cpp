@@ -13,18 +13,18 @@
 namespace compyled::parser {
 
 bool isDelimiter(const lexer::Token &Token, const lexer::DelimiterType ExpectedType) {
-  return Token.Type != lexer::TokenType::Delimiter &&
-         std::get<lexer::DelimiterType>(Token.Value) != ExpectedType;
+  return Token.Type == lexer::TokenType::Delimiter &&
+         std::get<lexer::DelimiterType>(Token.Value) == ExpectedType;
 }
 
 bool isOperator(const lexer::Token &Token, const lexer::OperatorType ExpectedType) {
-  return Token.Type != lexer::TokenType::Operator &&
-         std::get<lexer::OperatorType>(Token.Value) != ExpectedType;
+  return Token.Type == lexer::TokenType::Operator &&
+         std::get<lexer::OperatorType>(Token.Value) == ExpectedType;
 }
 
 bool isKeyword(const lexer::Token &Token, const lexer::KeywordType ExpectedType) {
-  return Token.Type != lexer::TokenType::Keyword &&
-         std::get<lexer::KeywordType>(Token.Value) != ExpectedType;
+  return Token.Type == lexer::TokenType::Keyword &&
+         std::get<lexer::KeywordType>(Token.Value) == ExpectedType;
 }
 
 bool isAugassign(const lexer::Token &Token) {
@@ -61,9 +61,6 @@ std::unique_ptr<ast::ASTNode> parseFile(lexer::Tokenizer &Tokenizer) {
   auto Stmts = std::vector<std::unique_ptr<ast::ASTNode>>{};
   while (Token.Type != lexer::TokenType::Eof) {
     auto OtherStatements = parseStatement(Tokenizer);
-    if (OtherStatements.empty())
-      return nullptr;
-
     std::ranges::move(OtherStatements, std::back_inserter(Stmts));
     Token = Tokenizer.peekNextToken();
   }
@@ -560,7 +557,7 @@ std::unique_ptr<ast::ASTNode> parseComparison(lexer::Tokenizer &Tokenizer) {
                                                   std::get<lexer::OperatorType>(Token.Value));
   }
 
-  return nullptr;
+  return Lhs;
 }
 
 std::unique_ptr<ast::ASTNode> parseBitwiseOr(lexer::Tokenizer &Tokenizer) {

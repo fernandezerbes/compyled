@@ -682,14 +682,18 @@ std::unique_ptr<ast::ASTNode> parsePower(lexer::Tokenizer &Tokenizer) {
 
 std::unique_ptr<ast::ASTNode> parsePrimary(lexer::Tokenizer &Tokenizer) {
   auto Atom = parseAtom(Tokenizer);
+  // TODO: Support chained calls, e.g. f(x, y)(r, s)
   if (isDelimiter(Tokenizer.peekNextToken(), lexer::DelimiterType::LeftParenthesis)) {
     Tokenizer.consumeNextToken();
-    auto Arguments = parseArguments(Tokenizer);
-    const auto Token = Tokenizer.peekNextToken();
+    auto Token = Tokenizer.peekNextToken();
+    auto Arguments = std::vector<std::unique_ptr<ast::ASTNode>>();
     if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
-      throw error::CompyledException("Expected '(' token", Token.Location);
+      Arguments = parseArguments(Tokenizer);
     }
-
+    Token = Tokenizer.consumeNextToken();
+    if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
+      throw error::CompyledException("Expected ')' token", Token.Location);
+    }
     return std::make_unique<ast::FunctionCall>(std::move(Arguments));
   }
 

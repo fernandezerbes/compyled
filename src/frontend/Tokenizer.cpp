@@ -71,14 +71,13 @@ constexpr std::size_t DEFAULT_INDENT_SIZE = 4;
 
 Tokenizer::Tokenizer(std::string &&Source, const std::size_t IndentSize)
     : Source_(std::move(Source)), IndentSize_{IndentSize} {
+  if (IndentSize == 0) {
+    throw std::invalid_argument("Indent size must be greater than 0.");
+  }
   if (IndentSize % 2 != 0) {
-    throw std::invalid_argument(std::format("Indent size {} is not a multiple of 2", IndentSize));
+    throw std::invalid_argument(std::format("Indent size {} is not a multiple of 2.", IndentSize));
   }
   consumeNextToken();
-  // Initialization of NextToken_ with consumeNextToken increments the position.
-  // Bring it back to 0.
-  CurrPos_ = 0;
-  CurrLocation_ = {};
 }
 
 Tokenizer::Tokenizer(std::string &&Source)
@@ -101,11 +100,9 @@ Token Tokenizer::consumeNextToken() {
   }
 
   auto WhitespaceCount = CurrPos_ - StartPos;
-  if (WhitespaceCount == 1) {
-    return updateNextToken({.Type = TokenType::Whitespace, .Location = StartLocation});
-  } else if (WhitespaceCount == IndentSize_) {
+  if (WhitespaceCount == IndentSize_) {
     return updateNextToken({.Type = TokenType::Indent, .Location = StartLocation});
-  } else if (WhitespaceCount > 0 && WhitespaceCount < IndentSize_) {
+  } else if (WhitespaceCount > 1 && WhitespaceCount < IndentSize_) {
     throw error::CompyledException(
         std::format("Unexpected number of whitespaces '{}'", WhitespaceCount), CurrLocation_);
   }

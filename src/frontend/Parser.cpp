@@ -349,7 +349,7 @@ std::unique_ptr<ast::ASTNode> parseDefault(lexer::Tokenizer &Tokenizer) {
 
 std::unique_ptr<ast::ASTNode> parseIfElifStmt(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.consumeNextToken();
-  if (!isKeyword(Token, lexer::KeywordType::If) || !isKeyword(Token, lexer::KeywordType::Elif))
+  if (!isKeyword(Token, lexer::KeywordType::If) && !isKeyword(Token, lexer::KeywordType::Elif))
     throw error::CompyledException("Expected 'if' or 'elif' token", Token.Location);
 
   auto Condition = parseExpression(Tokenizer);

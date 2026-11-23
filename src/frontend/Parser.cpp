@@ -200,7 +200,11 @@ std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer) {
   if (!isKeyword(Token, lexer::KeywordType::Return))
     throw error::CompyledException("Expected 'return' token", Token.Location);
 
-  auto Expression = parseExpression(Tokenizer);
+  Token = Tokenizer.peekNextToken();
+  auto Expression = std::unique_ptr<ast::ASTNode>{nullptr};
+  if (Token.Type != lexer::TokenType::NewLine) {
+    Expression = parseExpression(Tokenizer);
+  }
   return std::make_unique<ast::ReturnStmt>(std::move(Expression));
 }
 

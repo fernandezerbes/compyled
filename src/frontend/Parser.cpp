@@ -740,14 +740,14 @@ std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
 
 std::unique_ptr<ast::ASTNode> parseGroup(lexer::Tokenizer &Tokenizer) {
   auto Token = Tokenizer.consumeNextToken();
-  if (isDelimiter(Token, lexer::DelimiterType::LeftParenthesis)) {
+  if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis)) {
     throw error::CompyledException("Expected '(' token", Token.Location);
   }
 
   auto Expression = parseExpression(Tokenizer);
 
   Token = Tokenizer.consumeNextToken();
-  if (isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
+  if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
     throw error::CompyledException("Expected ')' token", Token.Location);
   }
 

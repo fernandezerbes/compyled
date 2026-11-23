@@ -2,6 +2,7 @@
 #include "AST.h"
 #include "Error.h"
 #include "Tokenizer.h"
+#include "Types.h"
 #include <cassert>
 #include <iterator>
 #include <memory>
@@ -719,7 +720,7 @@ std::unique_ptr<ast::ASTNode> parseAtom(lexer::Tokenizer &Tokenizer) {
     } else if (std::holds_alternative<types::FloatType>(Token.Value)) {
       return std::make_unique<ast::Value<types::FloatType>>(
           std::get<types::FloatType>(Token.Value));
-    } else if (std::holds_alternative<types::FloatType>(Token.Value)) {
+    } else if (std::holds_alternative<types::BooleanType>(Token.Value)) {
       return std::make_unique<ast::Value<types::BooleanType>>(
           std::get<types::BooleanType>(Token.Value));
     }

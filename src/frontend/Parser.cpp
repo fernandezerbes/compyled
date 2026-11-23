@@ -324,7 +324,6 @@ std::unique_ptr<ast::ASTNode> parseParameter(lexer::Tokenizer &Tokenizer) {
   auto Default = std::unique_ptr<ast::ASTNode>{nullptr};
   auto Token = Tokenizer.peekNextToken();
   if (isOperator(Token, lexer::OperatorType::Assign)) {
-    Tokenizer.consumeNextToken();
     Default = parseDefault(Tokenizer);
   }
 

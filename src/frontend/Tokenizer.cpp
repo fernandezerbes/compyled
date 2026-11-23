@@ -75,7 +75,7 @@ Token Tokenizer::peekNextToken() const noexcept { return NextToken_; }
 
 Token Tokenizer::consumeNextToken() {
   const auto PrevToken = NextToken_;
-  const auto StartLocation = CurrLocation_;
+  auto StartLocation = CurrLocation_;
   if (CurrPos_ == Source_.size()) {
     if (!IndentStack_.empty() && IndentStack_.top() > 0) {
       const auto DedentSize = IndentStack_.top();
@@ -90,7 +90,7 @@ Token Tokenizer::consumeNextToken() {
   }
 
   const auto StartPos = CurrPos_;
-  while (Source_[CurrPos_] == ' ') {
+  while (CurrPos_ < Source_.size() && Source_[CurrPos_] == ' ') {
     CurrPos_++;
     CurrLocation_.Column++;
   }
@@ -111,8 +111,12 @@ Token Tokenizer::consumeNextToken() {
     // ignore the whitespaces.
   }
 
+  // Update the start location of the token in case the location was advanced by the presence of
+  // whitespaces.
+  StartLocation = CurrLocation_;
+
   if (CurrPos_ == Source_.size()) {
-    return updateNextToken({.Type = TokenType::Eof, .Location = CurrLocation_});
+    return updateNextToken({.Type = TokenType::Eof, .Location = StartLocation});
   }
 
   if (Source_[CurrPos_] == '\n') {

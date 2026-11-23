@@ -892,15 +892,15 @@ TEST(TokenizerLocations, ColumnAdvancesByMultiCharacterSymbolLength) {
 }
 
 TEST(TokenizerLocations, ColumnAdvancesByNumberLength) {
-  const auto Tokens = tokensOf("123,4.5,1_000,x");
+  const auto Tokens = tokensOf("123,4.5,1e7,x");
   ASSERT_GE(Tokens.size(), 7u);
   expectLocation(Tokens[0], 0, 0);
   expectLocation(Tokens[1], 0, 3);
   expectLocation(Tokens[2], 0, 4);
   expectLocation(Tokens[3], 0, 7);
   expectLocation(Tokens[4], 0, 8);
-  expectLocation(Tokens[5], 0, 13);
-  expectLocation(Tokens[6], 0, 14);
+  expectLocation(Tokens[5], 0, 11);
+  expectLocation(Tokens[6], 0, 12);
 }
 
 TEST(TokenizerLocations, ColumnAdvancesByReservedWordLength) {

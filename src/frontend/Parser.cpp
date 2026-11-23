@@ -287,7 +287,7 @@ std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
 
   Token = Tokenizer.consumeNextToken();
   auto Parameters = std::vector<std::unique_ptr<ast::ASTNode>>{};
-  if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis)) {
+  if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
     auto Parameter = parseParameter(Tokenizer);
     Parameters.push_back(std::move(Parameter));
     Token = Tokenizer.peekNextToken();
@@ -297,11 +297,11 @@ std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
       Parameters.push_back(std::move(Parameter));
       Token = Tokenizer.peekNextToken();
     }
-  }
 
-  Token = Tokenizer.consumeNextToken();
-  if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis))
-    throw error::CompyledException("Expected ')' token", Token.Location);
+    Token = Tokenizer.consumeNextToken();
+    if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis))
+      throw error::CompyledException("Expected ')' token", Token.Location);
+  }
 
   Token = Tokenizer.consumeNextToken();
   if (!isDelimiter(Token, lexer::DelimiterType::Arrow))

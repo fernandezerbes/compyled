@@ -30,8 +30,8 @@ Expected Int(types::IntegerType V);
 Expected Flt(types::FloatType V);
 Expected Bool(types::BooleanType V);
 Expected NL();
-Expected Indent(std::size_t S = 0uz); // TODO: Remove default
-Expected Dedent(std::size_t S = 0uz); // TODO: Remove default
+Expected Indent(std::size_t S);
+Expected Dedent(std::size_t S);
 Expected Eof();
 
 // True if `Actual` has the type and value of `Want`.

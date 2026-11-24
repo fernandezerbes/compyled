@@ -784,62 +784,62 @@ TEST(TokenizerIndentation, OneDedentPerClosedLevel) {
 
 TEST(TokenizerIndentation, PartialDedent) {
   expectTokens("if a:\n    if b:\n        c\n    d\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(),
-                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(), Id("c"),
-                NL(), Dedent(), Id("d"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4),
+                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(8), Id("c"),
+                NL(), Dedent(8), Id("d"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, OpenBlocksAreClosedAtEndOfInput) {
   expectTokens("if a:\n    if b:\n        c\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(),
-                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(), Id("c"),
-                NL(), Dedent(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4),
+                Kw(KeywordType::If), Id("b"), Delim(DelimiterType::Colon), NL(), Indent(8), Id("c"),
+                NL(), Dedent(8), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, OpenBlocksAreClosedWithoutFinalNewLine) {
   expectTokens("if a:\n    b", {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(),
-                                Indent(), Id("b"), Dedent(), Eof()});
+                                Indent(4), Id("b"), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, OpenBlocksAreClosedBeforeTrailingBlankLines) {
   expectTokens("if a:\n    b\n\n\n", {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon),
-                                      NL(), Indent(), Id("b"), NL(), Dedent(), Eof()});
+                                      NL(), Indent(4), Id("b"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, SiblingBlocks) {
   expectTokens("if a:\n    b\nelse:\n    c\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Dedent(), Kw(KeywordType::Else), Delim(DelimiterType::Colon), NL(), Indent(),
-                Id("c"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Dedent(4), Kw(KeywordType::Else), Delim(DelimiterType::Colon), NL(), Indent(4),
+                Id("c"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, BlankLinesInsideBlockDoNotAffectIndentation) {
   expectTokens("if a:\n    b\n\n    c\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("c"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("c"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, WhitespaceOnlyLinesInsideBlockDoNotAffectIndentation) {
   expectTokens("if a:\n    b\n  \n    c\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("c"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("c"), NL(), Dedent(4), Eof()});
   expectTokens("if a:\n    b\n            \n    c\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("c"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("c"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, CommentLinesInsideBlockDoNotAffectIndentation) {
   expectTokens("if a:\n    b\n# c\n    d\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("d"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("d"), NL(), Dedent(4), Eof()});
   expectTokens("if a:\n    b\n        # c\n    d\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                NL(), Id("d"), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                NL(), Id("d"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, CommentAfterColonDoesNotAffectIndentation) {
   expectTokens("if a:  # c\n    b\n", {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon),
-                                       NL(), Indent(), Id("b"), NL(), Dedent(), Eof()});
+                                       NL(), Indent(4), Id("b"), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, BlockOnSameLineAsColonHasNoIndent) {
@@ -850,8 +850,8 @@ TEST(TokenizerIndentation, BlockOnSameLineAsColonHasNoIndent) {
 TEST(TokenizerIndentation, SpacesAfterFirstTokenAreNotIndentation) {
   expectTokens("a    = 1\n", {Id("a"), Op(OperatorType::Assign), Int(1), NL(), Eof()});
   expectTokens("if a:\n    b        = 1\n",
-               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(), Id("b"),
-                Op(OperatorType::Assign), Int(1), NL(), Dedent(), Eof()});
+               {Kw(KeywordType::If), Id("a"), Delim(DelimiterType::Colon), NL(), Indent(4), Id("b"),
+                Op(OperatorType::Assign), Int(1), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerIndentation, IndentedFirstLine) {
@@ -1122,13 +1122,13 @@ TEST(TokenizerPrograms, FunctionDefinition) {
                 Base(BaseType::Integer),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Kw(KeywordType::Return),
                 Id("a"),
                 Op(OperatorType::Add),
                 Id("b"),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Eof()});
 }
 
@@ -1137,8 +1137,8 @@ TEST(TokenizerPrograms, FunctionReturningNone) {
                "    pass\n",
                {Kw(KeywordType::Def), Id("f"), Delim(DelimiterType::LeftParenthesis),
                 Delim(DelimiterType::RightParenthesis), Delim(DelimiterType::Arrow),
-                Kw(KeywordType::None), Delim(DelimiterType::Colon), NL(), Indent(),
-                Kw(KeywordType::Pass), NL(), Dedent(), Eof()});
+                Kw(KeywordType::None), Delim(DelimiterType::Colon), NL(), Indent(4),
+                Kw(KeywordType::Pass), NL(), Dedent(4), Eof()});
 }
 
 TEST(TokenizerPrograms, IfElifElse) {
@@ -1154,34 +1154,34 @@ TEST(TokenizerPrograms, IfElifElse) {
                 Int(0),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Id("x"),
                 Op(OperatorType::Assign),
                 Op(OperatorType::Subtract),
                 Int(1),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Kw(KeywordType::Elif),
                 Id("a"),
                 Op(OperatorType::Equal),
                 Int(0),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Id("x"),
                 Op(OperatorType::Assign),
                 Int(0),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Kw(KeywordType::Else),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Id("x"),
                 Op(OperatorType::Assign),
                 Int(1),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Eof()});
 }
 
@@ -1196,25 +1196,25 @@ TEST(TokenizerPrograms, WhileElseWithBreakAndContinue) {
                 Bool(true),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Kw(KeywordType::If),
                 Id("a"),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(8),
                 Kw(KeywordType::Break),
                 NL(),
-                Dedent(),
+                Dedent(8),
                 Kw(KeywordType::Continue),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Kw(KeywordType::Else),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Kw(KeywordType::Pass),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Eof()});
 }
 
@@ -1234,12 +1234,12 @@ TEST(TokenizerPrograms, ForOverRange) {
                 Delim(DelimiterType::RightParenthesis),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Id("total"),
                 Op(OperatorType::UnaryAdd),
                 Id("i"),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Eof()});
 }
 
@@ -1259,18 +1259,18 @@ TEST(TokenizerPrograms, RecursiveFunction) {
                 Base(BaseType::Integer),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Kw(KeywordType::If),
                 Id("n"),
                 Op(OperatorType::Less),
                 Int(2),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(8),
                 Kw(KeywordType::Return),
                 Id("n"),
                 NL(),
-                Dedent(),
+                Dedent(8),
                 Kw(KeywordType::Return),
                 Id("fib"),
                 Delim(DelimiterType::LeftParenthesis),
@@ -1286,7 +1286,7 @@ TEST(TokenizerPrograms, RecursiveFunction) {
                 Int(2),
                 Delim(DelimiterType::RightParenthesis),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Eof()});
 }
 
@@ -1321,7 +1321,7 @@ TEST(TokenizerPrograms, ModuleWithGlobalsFunctionsCommentsAndBlankLines) {
                 Kw(KeywordType::None),
                 Delim(DelimiterType::Colon),
                 NL(),
-                Indent(),
+                Indent(4),
                 Kw(KeywordType::Global),
                 Id("counter"),
                 NL(),
@@ -1329,7 +1329,7 @@ TEST(TokenizerPrograms, ModuleWithGlobalsFunctionsCommentsAndBlankLines) {
                 Op(OperatorType::UnaryAdd),
                 Id("step"),
                 NL(),
-                Dedent(),
+                Dedent(4),
                 Id("bump"),
                 Delim(DelimiterType::LeftParenthesis),
                 Delim(DelimiterType::RightParenthesis),

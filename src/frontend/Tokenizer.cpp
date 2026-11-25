@@ -111,7 +111,7 @@ Token Tokenizer::consumeNextToken() {
   }
 
   const auto CurrIndentSize = IndentStack_.top();
-  if (PrevTokenIsNewLine) {
+  if (NoPrevToken || PrevTokenIsNewLine) {
     if (WhitespaceCount > CurrIndentSize) {
       IndentStack_.push(WhitespaceCount);
       return updateNextToken(

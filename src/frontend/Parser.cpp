@@ -768,6 +768,13 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseArguments(lexer::Tokenizer &Toke
 
   while (isDelimiter(Tokenizer.peekNextToken(), lexer::DelimiterType::Comma)) {
     Tokenizer.consumeNextToken();
+
+    const auto IsTrailingComma =
+        isDelimiter(Tokenizer.peekNextToken(), lexer::DelimiterType::RightParenthesis);
+    if (IsTrailingComma) {
+      break;
+    }
+
     Expression = parseExpression(Tokenizer);
     Arguments.push_back(std::move(Expression));
   }

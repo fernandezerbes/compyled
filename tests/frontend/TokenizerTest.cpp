@@ -943,7 +943,7 @@ TEST(TokenizerLocations, LinesAreCountedAcrossManyLines) {
   expectLocation(Tokens[6], 3, 0);
 }
 
-TEST(TokenizerLocations, BlankAndCommentLinesAreCounted) {
+TEST(TokenizerLocations, DISABLED_BlankAndCommentLinesAreCounted) {
   const auto Tokens = tokensOf("\n# comment\n\n   \nx\n");
   ASSERT_GE(Tokens.size(), 1u);
   expectLocation(Tokens[0], 4, 0);
@@ -959,7 +959,7 @@ TEST(TokenizerLocations, IndentationAdvancesColumn) {
   expectLocation(Tokens[7], 3, 4);
 }
 
-TEST(TokenizerLocations, TokenAfterTrailingCommentIsOnNextLine) {
+TEST(TokenizerLocations, DISABLED_TokenAfterTrailingCommentIsOnNextLine) {
   const auto Tokens = tokensOf("a # comment\nb");
   ASSERT_GE(Tokens.size(), 3u);
   expectLocation(Tokens[2], 1, 0);

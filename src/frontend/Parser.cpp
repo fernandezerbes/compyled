@@ -368,10 +368,8 @@ std::unique_ptr<ast::ASTNode> parseIfElifStmt(lexer::Tokenizer &Tokenizer) {
   auto BlockIfFalse = std::unique_ptr<ast::ASTNode>{nullptr};
   Token = Tokenizer.peekNextToken();
   if (isKeyword(Token, lexer::KeywordType::Elif)) {
-    Tokenizer.consumeNextToken();
     BlockIfFalse = parseIfElifStmt(Tokenizer);
   } else if (isKeyword(Token, lexer::KeywordType::Else)) {
-    Tokenizer.consumeNextToken();
     BlockIfFalse = parseElseBlock(Tokenizer);
   }
 

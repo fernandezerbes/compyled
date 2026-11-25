@@ -74,8 +74,9 @@ Tokenizer::Tokenizer(std::string &&Source) : Source_(std::move(Source)), IndentS
 Token Tokenizer::peekNextToken() const noexcept { return NextToken_; }
 
 Token Tokenizer::consumeNextToken() {
-  const auto PrevToken = NextToken_;
   auto StartLocation = CurrLocation_;
+  const auto PrevToken = NextToken_;
+  const auto StartPos = CurrPos_;
   if (CurrPos_ == Source_.size()) {
     if (!IndentStack_.empty() && IndentStack_.top() > 0) {
       const auto DedentSize = IndentStack_.top();
@@ -89,15 +90,28 @@ Token Tokenizer::consumeNextToken() {
     throw error::CompyledException("Cannot read past the end of source", CurrLocation_);
   }
 
-  const auto StartPos = CurrPos_;
-  while (CurrPos_ < Source_.size() && Source_[CurrPos_] == ' ') {
-    CurrPos_++;
-    CurrLocation_.Column++;
+  const auto NoPrevToken = StartPos == 0;
+  const auto PrevTokenIsNewLine = PrevToken.Type == TokenType::NewLine;
+  auto WhitespaceCount = 0uz;
+  while (CurrPos_ < Source_.size()) {
+    if (Source_[CurrPos_] == ' ') {
+      // Skip empty spaces...
+      CurrPos_++;
+      CurrLocation_.Column++;
+      WhitespaceCount++;
+    } else if ((NoPrevToken || PrevTokenIsNewLine) && Source_[CurrPos_] == '\n') {
+      // ... and fully empty lines
+      CurrPos_++;
+      CurrLocation_.Line++;
+      CurrLocation_.Column = 0;
+      WhitespaceCount = 0;
+    } else {
+      break;
+    }
   }
 
   const auto CurrIndentSize = IndentStack_.top();
-  auto WhitespaceCount = CurrPos_ - StartPos;
-  if (PrevToken.Type == TokenType::NewLine) {
+  if (PrevTokenIsNewLine) {
     if (WhitespaceCount > CurrIndentSize) {
       IndentStack_.push(WhitespaceCount);
       return updateNextToken(

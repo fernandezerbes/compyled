@@ -168,12 +168,12 @@ std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer) {
     auto Type = parseAnnotation(Tokenizer);
 
     Token = Tokenizer.peekNextToken();
-    if (!isOperator(Token, lexer::OperatorType::Assign))
-      throw error::CompyledException("Expected '=' token", Token.Location);
+    auto Rhs = std::unique_ptr<ast::ASTNode>{nullptr};
+    if (isOperator(Token, lexer::OperatorType::Assign)) {
+      Tokenizer.consumeNextToken();
+      Rhs = parseExpression(Tokenizer);
+    }
 
-    Tokenizer.consumeNextToken();
-
-    auto Rhs = parseExpression(Tokenizer);
     return std::make_unique<ast::TypedAssignment>(std::move(Lhs), std::move(Rhs), std::move(Type));
   }
 

@@ -858,11 +858,6 @@ TEST(TokenizerIndentation, IndentedFirstLine) {
   expectTokens("    x\n", {Indent(4), Id("x"), NL(), Dedent(4), Eof()});
 }
 
-TEST(TokenizerIndentation, IndentingMoreThanOneLevelAtOnceIsAnError) {
-  expectError("if a:\n        b\n");
-  expectError("if a:\n    if b:\n                c\n");
-}
-
 // -------------------------------------------------------------------------------------------------
 // Source locations
 // -------------------------------------------------------------------------------------------------

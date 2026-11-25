@@ -204,7 +204,7 @@ std::unique_ptr<ast::ASTNode> parseReturnStmt(lexer::Tokenizer &Tokenizer) {
 
   Token = Tokenizer.peekNextToken();
   auto Expression = std::unique_ptr<ast::ASTNode>{nullptr};
-  if (Token.Type != lexer::TokenType::NewLine) {
+  if (Token.Type != lexer::TokenType::NewLine && Token.Type != lexer::TokenType::Eof) {
     Expression = parseExpression(Tokenizer);
   }
   return std::make_unique<ast::ReturnStmt>(std::move(Expression));

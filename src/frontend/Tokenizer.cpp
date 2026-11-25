@@ -110,6 +110,11 @@ Token Tokenizer::consumeNextToken() {
     }
   }
 
+  // Reached the eof without generating any useful token
+  if (NoPrevToken && CurrPos_ == Source_.size()) {
+    return updateNextToken({.Type = TokenType::Eof, .Location = StartLocation});
+  }
+
   const auto CurrIndentSize = IndentStack_.top();
   if (NoPrevToken || PrevTokenIsNewLine) {
     if (WhitespaceCount > CurrIndentSize) {

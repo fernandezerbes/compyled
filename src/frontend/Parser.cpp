@@ -636,7 +636,7 @@ std::unique_ptr<ast::ASTNode> parseSum(lexer::Tokenizer &Tokenizer) {
     auto Rhs = parseTerm(Tokenizer);
     Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
                                                  std::get<lexer::OperatorType>(Token.Value));
-    Token = Tokenizer.consumeNextToken();
+    Token = Tokenizer.peekNextToken();
   }
 
   return Lhs;

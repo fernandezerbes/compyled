@@ -495,10 +495,14 @@ std::unique_ptr<ast::ASTNode> parseExpression(lexer::Tokenizer &Tokenizer) {
   if (!isKeyword(IfToken, lexer::KeywordType::If))
     return Expression;
 
+  Tokenizer.consumeNextToken();
+
   auto Condition = parseDisjunction(Tokenizer);
   auto ElseToken = Tokenizer.peekNextToken();
-  if (!isKeyword(IfToken, lexer::KeywordType::Else))
+  if (!isKeyword(ElseToken, lexer::KeywordType::Else))
     throw error::CompyledException("Expected 'else' token", ElseToken.Location);
+
+  Tokenizer.consumeNextToken();
 
   auto ExprIfFalse = parseExpression(Tokenizer);
   return std::make_unique<ast::IfExpr>(std::move(Expression), std::move(ExprIfFalse),

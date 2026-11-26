@@ -563,16 +563,17 @@ std::unique_ptr<ast::ASTNode> parseComparison(lexer::Tokenizer &Tokenizer) {
   auto Lhs = parseBitwiseOr(Tokenizer);
 
   auto Token = Tokenizer.peekNextToken();
-  if (isOperator(Token, lexer::OperatorType::Equal) ||
-      isOperator(Token, lexer::OperatorType::NotEqual) ||
-      isOperator(Token, lexer::OperatorType::LessOrEqual) ||
-      isOperator(Token, lexer::OperatorType::Less) ||
-      isOperator(Token, lexer::OperatorType::GreaterOrEqual) ||
-      isOperator(Token, lexer::OperatorType::Greater)) {
+  while (isOperator(Token, lexer::OperatorType::Equal) ||
+         isOperator(Token, lexer::OperatorType::NotEqual) ||
+         isOperator(Token, lexer::OperatorType::LessOrEqual) ||
+         isOperator(Token, lexer::OperatorType::Less) ||
+         isOperator(Token, lexer::OperatorType::GreaterOrEqual) ||
+         isOperator(Token, lexer::OperatorType::Greater)) {
     Tokenizer.consumeNextToken();
     auto Rhs = parseBitwiseOr(Tokenizer);
-    return std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
-                                                  std::get<lexer::OperatorType>(Token.Value));
+    Lhs = std::make_unique<ast::BinaryOperation>(std::move(Lhs), std::move(Rhs),
+                                                 std::get<lexer::OperatorType>(Token.Value));
+    Token = Tokenizer.peekNextToken();
   }
 
   return Lhs;

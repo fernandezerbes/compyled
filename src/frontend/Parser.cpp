@@ -414,7 +414,6 @@ std::unique_ptr<ast::ASTNode> parseWhileStmt(lexer::Tokenizer &Tokenizer) {
   Token = Tokenizer.peekNextToken();
   auto ElseBlock = std::unique_ptr<ast::ASTNode>{nullptr};
   if (isKeyword(Token, lexer::KeywordType::Else)) {
-    Tokenizer.consumeNextToken();
     ElseBlock = parseElseBlock(Tokenizer);
   }
 

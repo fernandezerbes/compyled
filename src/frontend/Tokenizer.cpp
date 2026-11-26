@@ -298,6 +298,9 @@ std::optional<std::pair<std::string, std::size_t>> matchExponent(const std::stri
         return std::pair{Exponent, CurrPos};
       }
     }
+
+    // TODO: Add source location
+    throw error::CompyledException("Exponent must have digits", {});
   }
   return std::nullopt;
 }

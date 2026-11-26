@@ -294,7 +294,7 @@ std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
   if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis))
     throw error::CompyledException("Expected '(' token", Token.Location);
 
-  Token = Tokenizer.consumeNextToken();
+  Token = Tokenizer.peekNextToken();
   auto Parameters = std::vector<std::unique_ptr<ast::ASTNode>>{};
   if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
     auto Parameter = parseParameter(Tokenizer);
@@ -302,15 +302,21 @@ std::unique_ptr<ast::ASTNode> parseFunctionDef(lexer::Tokenizer &Tokenizer) {
     Token = Tokenizer.peekNextToken();
     while (isDelimiter(Token, lexer::DelimiterType::Comma)) {
       Tokenizer.consumeNextToken();
+      Token = Tokenizer.peekNextToken();
+      if (isDelimiter(Token, lexer::DelimiterType::RightParenthesis)) {
+        // Parameters can end with a trailing comma.
+        break;
+      }
       Parameter = parseParameter(Tokenizer);
       Parameters.push_back(std::move(Parameter));
       Token = Tokenizer.peekNextToken();
     }
 
-    Token = Tokenizer.consumeNextToken();
+    Token = Tokenizer.peekNextToken();
     if (!isDelimiter(Token, lexer::DelimiterType::RightParenthesis))
       throw error::CompyledException("Expected ')' token", Token.Location);
   }
+  Tokenizer.consumeNextToken();
 
   Token = Tokenizer.consumeNextToken();
   if (!isDelimiter(Token, lexer::DelimiterType::Arrow))

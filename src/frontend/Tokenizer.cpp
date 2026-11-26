@@ -90,6 +90,16 @@ Token Tokenizer::consumeNextToken() {
     throw error::CompyledException("Cannot read past the end of source", CurrLocation_);
   }
 
+  // If the previous token is a dedent and the current indentation is higher than the starting
+  // column, we must keep unwinding the indentation stack until we reach the current column level.
+  const auto PrevTokenIsDedent = PrevToken.Type == TokenType::Dedent;
+  const auto CurrIndentSize = IndentStack_.top();
+  if (PrevTokenIsDedent && StartLocation.Column < CurrIndentSize) {
+    IndentStack_.pop();
+    return updateNextToken(
+        {.Type = TokenType::Dedent, .Location = StartLocation, .Value = CurrIndentSize});
+  }
+
   const auto NoPrevToken = StartPos == 0;
   const auto PrevTokenIsNewLine = PrevToken.Type == TokenType::NewLine;
   auto WhitespaceCount = 0uz;
@@ -115,7 +125,6 @@ Token Tokenizer::consumeNextToken() {
     return updateNextToken({.Type = TokenType::Eof, .Location = StartLocation});
   }
 
-  const auto CurrIndentSize = IndentStack_.top();
   if (NoPrevToken || PrevTokenIsNewLine) {
     if (WhitespaceCount > CurrIndentSize) {
       IndentStack_.push(WhitespaceCount);

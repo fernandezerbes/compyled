@@ -92,19 +92,20 @@ std::vector<std::unique_ptr<ast::ASTNode>> parseSimpleStmts(lexer::Tokenizer &To
     return Stmts;
   }
 
-  if (isDelimiter(Token, lexer::DelimiterType::Semicolon)) {
-    Tokenizer.consumeNextToken();
-
-    Token = Tokenizer.peekNextToken();
-    if (Token.Type == lexer::TokenType::NewLine) {
-      Tokenizer.consumeNextToken();
-      return Stmts;
-    }
-
-    auto AdditionalStmts = parseSimpleStmts(Tokenizer);
-    std::ranges::move(AdditionalStmts, std::back_inserter(Stmts));
+  if (!isDelimiter(Token, lexer::DelimiterType::Semicolon)) {
+    throw error::CompyledException("Expected '\n' or ';' tokens", Token.Location);
   }
 
+  Tokenizer.consumeNextToken();
+
+  Token = Tokenizer.peekNextToken();
+  if (Token.Type == lexer::TokenType::NewLine) {
+    Tokenizer.consumeNextToken();
+    return Stmts;
+  }
+
+  auto AdditionalStmts = parseSimpleStmts(Tokenizer);
+  std::ranges::move(AdditionalStmts, std::back_inserter(Stmts));
   return Stmts;
 }
 
@@ -178,8 +179,9 @@ std::unique_ptr<ast::ASTNode> parseAssignment(lexer::Tokenizer &Tokenizer) {
     return std::make_unique<ast::TypedAssignment>(std::move(Lhs), std::move(Rhs), std::move(Type));
   }
 
-  if (!isOperator(Token, lexer::OperatorType::Assign))
-    throw error::CompyledException("Expected '=' token", Token.Location);
+  if (!isOperator(Token, lexer::OperatorType::Assign)) {
+    return Lhs;
+  }
 
   Tokenizer.consumeNextToken();
 

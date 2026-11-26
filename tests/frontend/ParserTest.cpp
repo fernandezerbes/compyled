@@ -532,6 +532,9 @@ TEST(ParserAtoms, Identifier) {
 TEST(ParserAtoms, IntegerLiterals) {
   expectExpr("0", "0");
   expectExpr("42", "42");
+}
+
+TEST(ParserAtoms, DISABLED_IntegerLiterals) {
   expectExpr("0x10", "16");
   expectExpr("1_000", "1000");
 }

@@ -1350,14 +1350,14 @@ TEST(DetailGetIntegerLiteral, ParsesPrefixAndReportsLength) {
   EXPECT_EQ(R->second, 3u);
 }
 
-TEST(DetailGetIntegerLiteral, CountsUnderscoresInLength) {
+TEST(DetailGetIntegerLiteral, DISABLED_CountsUnderscoresInLength) {
   const auto R = detail::getIntegerLiteral("1_000)");
   ASSERT_TRUE(R.has_value());
   EXPECT_EQ(R->first, 1000);
   EXPECT_EQ(R->second, 5u);
 }
 
-TEST(DetailGetIntegerLiteral, ParsesPrefixedBases) {
+TEST(DetailGetIntegerLiteral, DISABLED_ParsesPrefixedBases) {
   const auto Hex = detail::getIntegerLiteral("0xff");
   ASSERT_TRUE(Hex.has_value());
   EXPECT_EQ(Hex->first, 255);

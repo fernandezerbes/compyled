@@ -308,7 +308,7 @@ std::optional<std::pair<std::string, std::size_t>> matchExponent(const std::stri
 // https://docs.python.org/3/reference/lexical_analysis.html#integer-literals
 std::optional<std::pair<types::IntegerType, std::size_t>>
 getIntegerLiteral(const std::string_view Source) {
-  if (Source.empty()) {
+  if (Source.empty() || Source.front() == '-' || Source.front() == '+') {
     return std::nullopt;
   }
 

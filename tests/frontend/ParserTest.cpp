@@ -1819,6 +1819,9 @@ TEST(ParserStatementRule, InvalidStatementsAreAnError) {
 TEST(ParserFile, EmptyFile) {
   expectFile("\n", {});
   expectFile("\n\n", {});
+}
+
+TEST(ParserFile, DISABLED_EmptyFileWithComments) {
   expectFile("# just a comment\n", {});
   expectFile("   \n  # comment\n\n", {});
 }

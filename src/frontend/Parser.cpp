@@ -442,12 +442,13 @@ std::unique_ptr<ast::ASTNode> parseForStmt(lexer::Tokenizer &Tokenizer) {
   if (!isDelimiter(Token, lexer::DelimiterType::LeftParenthesis))
     throw error::CompyledException("Expected '(' token", Token.Location);
 
-  auto StartExpr = parseExpression(Tokenizer);
-  auto StopExpr = std::unique_ptr<ast::ASTNode>{nullptr};
+  auto StartExpr = std::unique_ptr<ast::ASTNode>{nullptr};
+  auto StopExpr = parseExpression(Tokenizer);
   auto StepExpr = std::unique_ptr<ast::ASTNode>{nullptr};
   Token = Tokenizer.peekNextToken();
   if (isDelimiter(Token, lexer::DelimiterType::Comma)) {
     Tokenizer.consumeNextToken();
+    StartExpr = std::move(StopExpr);
     StopExpr = parseExpression(Tokenizer);
     Token = Tokenizer.peekNextToken();
     if (isDelimiter(Token, lexer::DelimiterType::Comma)) {

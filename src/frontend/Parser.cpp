@@ -553,7 +553,7 @@ std::unique_ptr<ast::ASTNode> parseInversion(lexer::Tokenizer &Tokenizer) {
   if (isOperator(NotToken, lexer::OperatorType::LogicalNot)) {
     Tokenizer.consumeNextToken();
     auto Rhs = parseInversion(Tokenizer);
-    return std::make_unique<ast::UnaryOp>(std::move(Rhs), getOperator(NotToken));
+    return std::make_unique<ast::UnaryOperation>(std::move(Rhs), getOperator(NotToken));
   }
 
   return parseComparison(Tokenizer);
@@ -681,7 +681,7 @@ std::unique_ptr<ast::ASTNode> parseFactor(lexer::Tokenizer &Tokenizer) {
       isOperator(Token, lexer::OperatorType::BitwiseInvert)) {
     Tokenizer.consumeNextToken();
     auto Factor = parseFactor(Tokenizer);
-    return std::make_unique<ast::UnaryOp>(std::move(Factor), getOperator(Token));
+    return std::make_unique<ast::UnaryOperation>(std::move(Factor), getOperator(Token));
   }
 
   return parsePower(Tokenizer);

@@ -69,8 +69,8 @@ AST_FIELD(CallArguments, ast::FunctionCall, NodeList, Arguments_);
 AST_FIELD(BinaryLhs, ast::BinaryOperation, NodePtr, Lhs_);
 AST_FIELD(BinaryRhs, ast::BinaryOperation, NodePtr, Rhs_);
 AST_FIELD(BinaryOperator, ast::BinaryOperation, const OperatorType, Operator_);
-AST_FIELD(UnaryRhs, ast::UnaryOp, NodePtr, Rhs_);
-AST_FIELD(UnaryOperator, ast::UnaryOp, const OperatorType, Operator_);
+AST_FIELD(UnaryRhs, ast::UnaryOperation, NodePtr, Rhs_);
+AST_FIELD(UnaryOperator, ast::UnaryOperation, const OperatorType, Operator_);
 AST_FIELD(AugassignLhs, ast::Augassign, NodePtr, Lhs_);
 AST_FIELD(AugassignRhs, ast::Augassign, NodePtr, Rhs_);
 AST_FIELD(AugassignOperator, ast::Augassign, const OperatorType, Operator_);
@@ -281,7 +281,7 @@ std::string dump(const ast::ASTNode *N) {
   if (const auto *V = dynamic_cast<const ast::ValueType *>(N)) {
     return typeName(field<ValueTypeType>(*V));
   }
-  if (const auto *V = dynamic_cast<const ast::UnaryOp *>(N)) {
+  if (const auto *V = dynamic_cast<const ast::UnaryOperation *>(N)) {
     return sexpr(symbol(field<UnaryOperator>(*V)), {dump(field<UnaryRhs>(*V))});
   }
   if (const auto *V = dynamic_cast<const ast::BinaryOperation *>(N)) {

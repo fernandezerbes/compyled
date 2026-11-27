@@ -22,14 +22,14 @@ public:
 
 class Stmt : public ASTNode {
 public:
-  virtual ~Stmt() = default;
+  ~Stmt() override = default;
 
   void accept(visitor::Visitor &Visitor) const override {};
 };
 
 class Expr : public Stmt {
 public:
-  virtual ~Expr() = default;
+  ~Expr() override = default;
 
   void accept(visitor::Visitor &Visitor) const override {};
 };
@@ -41,7 +41,7 @@ public:
   using Type = T;
 
   explicit Value(T Value);
-  virtual ~Value() = default;
+  ~Value() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -61,7 +61,7 @@ class Identifier : public ASTNode {
 
 public:
   explicit Identifier(std::string &&Name);
-  virtual ~Identifier() = default;
+  ~Identifier() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -99,7 +99,7 @@ class FunctionCall : public ASTNode {
 
 public:
   explicit FunctionCall(std::vector<std::unique_ptr<ASTNode>> &&Arguments);
-  virtual ~FunctionCall() = default;
+  ~FunctionCall() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -112,7 +112,7 @@ class BinaryOperation : public ASTNode {
 public:
   BinaryOperation(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
                   const lexer::OperatorType Operator);
-  virtual ~BinaryOperation() = default;
+  ~BinaryOperation() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -123,7 +123,7 @@ class UnaryOperation : public ASTNode {
 
 public:
   UnaryOperation(std::unique_ptr<ASTNode> &&Rhs, const lexer::OperatorType Operator);
-  virtual ~UnaryOperation() = default;
+  ~UnaryOperation() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -136,7 +136,7 @@ class Augassign : public ASTNode {
 public:
   Augassign(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
             const lexer::OperatorType Operator);
-  virtual ~Augassign() = default;
+  ~Augassign() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -149,7 +149,7 @@ class TypedAssignment : public ASTNode {
 public:
   TypedAssignment(std::unique_ptr<ASTNode> &&Lhs, std::unique_ptr<ASTNode> &&Rhs,
                   std::unique_ptr<ASTNode> &&Type);
-  virtual ~TypedAssignment() = default;
+  ~TypedAssignment() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -160,7 +160,7 @@ class Assignment : public ASTNode {
 
 public:
   Assignment(std::vector<std::unique_ptr<ASTNode>> &&Lhss, std::unique_ptr<ASTNode> &&Rhs);
-  virtual ~Assignment() = default;
+  ~Assignment() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -173,7 +173,7 @@ class IfExpr : public Expr {
 public:
   IfExpr(std::unique_ptr<ASTNode> &&ExprIfTrue, std::unique_ptr<ASTNode> &&ExprIfFalse,
          std::unique_ptr<ASTNode> &&Condition);
-  virtual ~IfExpr() = default;
+  ~IfExpr() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -183,7 +183,7 @@ class Block : public ASTNode {
 
 public:
   explicit Block(std::vector<std::unique_ptr<ASTNode>> &&Statements);
-  virtual ~Block() = default;
+  ~Block() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
@@ -196,7 +196,7 @@ class IfStmt : public Stmt {
 public:
   IfStmt(std::unique_ptr<ASTNode> &&Condition, std::unique_ptr<ASTNode> &&StmtIfTrue,
          std::unique_ptr<ASTNode> &&StmtIfFalse);
-  virtual ~IfStmt() = default;
+  ~IfStmt() override = default;
 
   void accept(visitor::Visitor &Visitor) const override;
 };
